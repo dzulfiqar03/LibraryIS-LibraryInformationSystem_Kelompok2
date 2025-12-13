@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\JsonResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        JsonResponse::macro('pretty', function () {
+        $this->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        return $this;
+    });
     }
 }
