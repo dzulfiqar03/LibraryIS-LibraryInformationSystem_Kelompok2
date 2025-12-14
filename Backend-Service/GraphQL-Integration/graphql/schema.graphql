@@ -1,0 +1,42 @@
+type Query {
+    users: User! 
+        @field(resolver: "App\\GraphQL\\Queries\\MemberQuery@all")
+      
+    user(id: ID!): Users
+        @field(resolver: "App\\GraphQL\\Queries\\MemberQuery@find")
+
+    books: Book!
+        @field(resolver: "App\\GraphQL\\Queries\\BookQuery@all")
+
+    book(id: ID!): Books 
+        @field(resolver: "App\\GraphQL\\Queries\\BookQuery@find")
+        
+}
+
+type User {
+    user: [Users!]!
+}
+
+type Users {
+    id: ID!
+    email: String!
+    user_detail: UserDetail!
+}
+
+type UserDetail {
+    username: String
+}
+
+type Book {
+    booksList: [Books!]!
+}
+
+type Books {
+    id: ID!
+    title: String!
+    book_detail: BookDetail!
+}
+
+type BookDetail {
+    authors: String
+}

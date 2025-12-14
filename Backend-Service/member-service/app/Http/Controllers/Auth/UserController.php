@@ -1,24 +1,32 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
-use App\Models\Book;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\UserDetail;
 use Illuminate\Http\Request;
 
-class BookController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $book = Book::with('book_detail')->get();
-        return response()->json(
-            [
-                'message' => 'berhasil',
-                'data' => $book 
-            ],200
-        )->pretty();
+        $user = User::with('user_detail')->get();
+
+        $members = UserDetail::whereHas('roles', function ($q) {
+            $q->where('id_role', 2);
+        })->get();
+
+        if ($members->isEmpty()) {
+            return $members;
+        }
+        return response()->json([
+            'Message' => "Berhasil",
+            'Data' => $user
+        ], 200)->pretty();
     }
 
     /**
@@ -40,12 +48,12 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Book $book)
+    public function show(User $user)
     {
         return response()->json(
             [
                 'message' => 'berhasil',
-                'data' => $book->load('book_detail')
+                'data' => $user->load('user_detail')
             ],200
         )->pretty();
     }
@@ -53,7 +61,7 @@ class BookController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Book $book)
+    public function edit(User $user)
     {
         //
     }
@@ -61,7 +69,7 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(Request $request, User $user)
     {
         //
     }
@@ -69,7 +77,7 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Book $book)
+    public function destroy(string $id)
     {
         //
     }
