@@ -1,15 +1,15 @@
 type Query {
     users: User! 
-        @field(resolver: "App\\GraphQL\\Queries\\MemberQuery@all")
+        @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@all")
       
     user(id: ID!): Users
-        @field(resolver: "App\\GraphQL\\Queries\\MemberQuery@find")
+        @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@find")
 
     books: Book!
-        @field(resolver: "App\\GraphQL\\Queries\\BookQuery@all")
+        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
 
     book(id: ID!): Books 
-        @field(resolver: "App\\GraphQL\\Queries\\BookQuery@find")
+        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@find")
         
 }
 
@@ -20,11 +20,20 @@ type User {
 type Users {
     id: ID!
     email: String!
-    user_detail: UserDetail!
+    user_detail: UserDetail
 }
 
 type UserDetail {
     username: String
+    name: String
+    telephone_number: String
+    address: String
+    roles: Role
+}
+
+type Role{
+    id: ID
+    role: String
 }
 
 type Book {
@@ -39,4 +48,8 @@ type Books {
 
 type BookDetail {
     authors: String
+    languages: String
+    url-cover: String
+    url-ebook: String
+    status: String
 }

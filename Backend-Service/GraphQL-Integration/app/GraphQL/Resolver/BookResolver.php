@@ -1,10 +1,10 @@
 <?php
 
-namespace App\GraphQL\Queries;
+namespace App\GraphQL\Resolver;
 
 use Illuminate\Support\Facades\Http;
 
-class BookQuery
+class BookResolver
 {
     /**
      * Create a new class instance.

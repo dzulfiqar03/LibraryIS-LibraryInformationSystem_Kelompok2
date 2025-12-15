@@ -1,0 +1,29 @@
+type Query {
+    users: User! 
+        @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@all")  
+    user(id:ID!): Users
+        @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@find")  
+}
+
+type User {
+    user: [Users!]!
+}
+
+type Users {
+    id: ID!
+    email: String!
+    user_detail: UserDetail!
+}
+
+type UserDetail {
+    username: String
+    name: String
+    telephone_number: String
+    address: String
+    roles: Role
+}
+
+type Role{
+    role: String
+}
+

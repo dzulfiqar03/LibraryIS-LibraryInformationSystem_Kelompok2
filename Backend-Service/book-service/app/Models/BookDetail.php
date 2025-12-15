@@ -10,7 +10,7 @@ class BookDetail extends Model
         'id_book'
     ];
 
-    public function book_detail()
+    public function book()
     {
         return $this->belongsTo(Book::class, 'id_book', 'id');
     }

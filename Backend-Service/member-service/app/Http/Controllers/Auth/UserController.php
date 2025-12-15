@@ -14,7 +14,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = User::with('user_detail')->get();
+        $user = User::with('user_detail.roles')->get();
 
         $members = UserDetail::whereHas('roles', function ($q) {
             $q->where('id_role', 2);
@@ -53,7 +53,7 @@ class UserController extends Controller
         return response()->json(
             [
                 'message' => 'berhasil',
-                'data' => $user->load('user_detail')
+                'data' => $user->load('user_detail.roles')
             ],200
         )->pretty();
     }

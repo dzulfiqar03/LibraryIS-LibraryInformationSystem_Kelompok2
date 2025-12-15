@@ -1,8 +1,8 @@
 <?php
 
-namespace App\GraphQL\Queries;
+namespace App\GraphQL\Resolver;
 
-class TransactionQuery
+class TransactionResolver
 {
     /**
      * Create a new class instance.

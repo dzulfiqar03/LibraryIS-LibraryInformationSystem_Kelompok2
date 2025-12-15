@@ -1,0 +1,25 @@
+type Query {
+    books: Book!
+        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
+
+    book(id: ID!): Books 
+        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@find")
+    }
+
+type Book {
+    booksList: [Books!]!
+}
+
+type Books {
+    id: ID!
+    title: String!
+    book_detail: [BookDetail]
+}
+
+type BookDetail {
+    authors: String
+    languages: String
+    url_cover: String
+    url_ebook: String
+    status: String
+}

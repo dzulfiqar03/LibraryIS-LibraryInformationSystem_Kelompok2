@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('id_book')->constrained('books')->onDelete('cascade');
             $table->string('authors')->nullable();
             $table->string('languages')->nullable();
-            $table->string('url-cover')->nullable();
-            $table->string('url-ebook')->nullable();
+            $table->string('url_cover')->nullable();
+            $table->string('url_ebook')->nullable();
             $table->enum('status', ['active', 'non active']);
             $table->timestamps();
         });
