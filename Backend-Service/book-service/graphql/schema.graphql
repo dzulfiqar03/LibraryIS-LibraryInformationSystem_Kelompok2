@@ -1,10 +1,9 @@
 type Query {
-    books: Book!
-        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
+    books: Book! @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
 
-    book(id: ID!): Books 
+    book(id: ID!): Books
         @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@find")
-    }
+}
 
 type Book {
     booksList: [Books!]!
@@ -13,7 +12,7 @@ type Book {
 type Books {
     id: ID!
     title: String!
-    book_detail: [BookDetail]
+    book_detail: BookDetail
 }
 
 type BookDetail {
@@ -22,4 +21,34 @@ type BookDetail {
     url_cover: String
     url_ebook: String
     status: String
+}
+
+input BookDetailInput {
+  authors: String
+  languages: String
+  url_cover: String
+  url_ebook: String
+  status: String
+}
+
+input CreateBookInput {
+  title: String!
+  detail: BookDetailInput
+}
+
+
+type Response {
+  message: String
+  data: [Books]
+}
+
+type Mutation {
+    createBook(input: CreateBookInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@create")
+
+    updateBook(id: ID!, input: CreateBookInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@update")
+
+    deleteBook(id: ID!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@delete")
 }

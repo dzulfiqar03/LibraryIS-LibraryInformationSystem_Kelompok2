@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BookRequest;
 use App\Models\Book;
+use App\Services\BookServices;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
@@ -10,31 +12,40 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function __construct(
+        protected BookServices $bookService
+    ) {}
     public function index()
     {
-        $book = Book::with('book_detail')->get();
+        $book = Book::with('book_detail')->latest()->get();
         return response()->json(
             [
                 'message' => 'berhasil',
-                'data' => $book 
-            ],200
+                'data' => $book
+            ],
+            200
         )->pretty();
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        //
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BookRequest $request)
     {
-        //
+        $book = $this->bookService->createBook($request->validated());
+
+        return response()->json(
+            [
+                'message' => 'berhasil',
+                'data' => $book
+            ],
+            200
+        )->pretty();
     }
 
     /**
@@ -46,7 +57,8 @@ class BookController extends Controller
             [
                 'message' => 'berhasil',
                 'data' => $book->load('book_detail')
-            ],200
+            ],
+            200
         )->pretty();
     }
 
@@ -61,9 +73,17 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(BookRequest $request, Book $book)
     {
-        //
+        $book = $this->bookService->updateBook($book->id, $request->validated());
+
+        return response()->json(
+            [
+                'message' => 'berhasil diupdate',
+                'data' => $book
+            ],
+            200
+        )->pretty();
     }
 
     /**
@@ -71,6 +91,14 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        //
+        $book = $this->bookService->deleteBook($book->id);
+
+        return response()->json(
+            [
+                'message' => 'berhasil dihapus',
+                'data' => $book
+            ],
+            200
+        )->pretty();
     }
 }
