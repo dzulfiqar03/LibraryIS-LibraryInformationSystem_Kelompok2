@@ -26,10 +26,10 @@ class BookRequest extends FormRequest
         return [
             'title'    => 'required|string',
             'authors'    => 'nullable|string',
-        'languages'  => 'nullable|string',
-        'url_cover'  => 'nullable|string',
-        'url_ebook'  => 'nullable|string',
-        'status'     => 'nullable|string',
+            'languages'  => 'nullable|string',
+            'url_cover'  => 'nullable|string',
+            'url_ebook'  => 'nullable|string',
+            'status'     => 'nullable|string',
 
         ];
     }
