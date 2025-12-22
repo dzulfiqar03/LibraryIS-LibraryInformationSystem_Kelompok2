@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BookRequest;
+use App\Jobs\Consume\ConsumeTransactionBorrowed;
+use App\Jobs\Publish\BookStatusUpdatedJob;
 use App\Models\Book;
 use App\Services\BookServices;
 use Illuminate\Http\Request;
@@ -101,4 +103,5 @@ class BookController extends Controller
             200
         )->pretty();
     }
+
 }

@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
      ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'roles' => \App\Http\Middleware\RolesMiddleware::class,
+            'roles' => \App\Http\Middleware\VerifyRoles::class,
             'member.jwt' => \App\Http\Middleware\VerifyMemberJWT::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionRequest;
+use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,7 @@ class TransactionController extends Controller
         try {
             $transaction = $this->transactionService->createTransaction($request->validated());
 
+            
             return response()->json([
                 'message' => 'Transaksi berhasil dibuat',
                 'data' => $transaction
@@ -61,10 +63,11 @@ class TransactionController extends Controller
         }
     }
 
-    public function returnBook($id)
+
+    public function update($id, TransactionRequest $request)
     {
         try {
-            $transaction = $this->transactionService->returnTransaction($id);
+            $transaction = $this->transactionService->returnTransaction($id, $request->validated());
 
             return response()->json([
                 'message' => 'Buku berhasil dikembalikan',
@@ -76,6 +79,19 @@ class TransactionController extends Controller
                 'error' => $e->getMessage()
             ], 400);
         }
+    }
+
+    public function destroy($id, TransactionRequest $request)
+    {
+        $book = $this->transactionService->deleteTransaction($id, $request->validated());
+
+        return response()->json(
+            [
+                'message' => 'berhasil dihapus',
+                'data' => $book
+            ],
+            200
+        )->pretty();
     }
 
     public function getMemberTransactions($memberId)

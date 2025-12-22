@@ -1,0 +1,52 @@
+type Query {
+    transactions: Transaction! @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@all")
+
+    transaction(id: ID!): Transactions
+        @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@find")
+}
+
+type Transaction {
+    transactionList: [Transactions!]!
+}
+
+type Transactions {
+    id: ID!
+    id_member: String!
+    status: String!
+    transaction_details: [TransactionDetail]
+}
+
+type TransactionDetail {
+    id: ID
+    id_transaction: String
+    id_book: Int
+    quantity: Int
+    price: Float
+}
+input TransactionDetailInput {
+  id_book: Int
+  quantity: Int
+  price: Float
+}
+
+input CreateTransactionInput {
+  id_member: String!
+  transaction_date: String
+  books: [TransactionDetailInput]
+}
+
+type Response {
+  message: String
+  data: [Transactions]
+}
+
+type Mutation {
+    createTransaction(input: CreateTransactionInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@create")
+
+    updateTransaction(id: ID!, input: CreateTransactionInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@update")
+
+    deleteTransaction(id: ID!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@delete")
+}

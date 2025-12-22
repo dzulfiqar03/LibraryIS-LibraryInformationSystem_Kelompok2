@@ -20,7 +20,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/validate-token', function (Request $request) {
         return response()->json([
             'valid' => true,
-            'user' => auth()->user()
+            'user' => auth()->user()->load('user_detail.roles')
         ]);
     });
 });

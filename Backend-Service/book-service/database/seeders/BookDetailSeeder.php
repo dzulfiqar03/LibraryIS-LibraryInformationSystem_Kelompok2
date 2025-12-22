@@ -19,6 +19,7 @@ class BookDetailSeeder extends Seeder
 
         foreach ($books as $key => $book) {
 
+            
             DB::table('book_details')->insert(
                 [
                     'id_book' => $key + 1,
@@ -26,7 +27,7 @@ class BookDetailSeeder extends Seeder
                     'languages' => $book['languages'][0],
                     'url_cover' => $book['formats']['application/epub+zip'],
                     'url_ebook' => $book['formats']['image/jpeg'],
-                    'status' => 'active',
+                    'status' => 'available',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

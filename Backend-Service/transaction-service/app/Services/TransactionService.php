@@ -2,10 +2,17 @@
 
 namespace App\Services;
 
+use App\Jobs\Consume\ConsumeTransaction;
+use App\Jobs\Consume\ConsumeTransactionBorrowed;
+use App\Jobs\Publish\BookSnaphotJob;
+use App\Jobs\Publish\TransactionBorrowedJob;
+use App\Jobs\Publish\TransactionJob;
+use App\Models\Book;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Queue;
 
 class TransactionService
 {
@@ -13,80 +20,94 @@ class TransactionService
     protected $bookService;
 
     public function __construct(
-        MemberService $memberService,
-        BookService $bookService
     ) {
-        $this->memberService = $memberService;
-        $this->bookService = $bookService;
+    }
+
+      public function getAll()
+    {
+        return Transaction::with('transaction_details')->latest()->get();
     }
 
     public function createTransaction(array $data)
     {
-        return DB::transaction(function () use ($data) {
-            // Validate member
-            if (!$this->memberService->validateMember($data['id_member'])) {
-                throw new \Exception('Member not found');
-            }
+        $books = collect($data['books'])->map(fn($b) => [
+            'id_book' => $b['id_book'],
+            'quantity' => $b['quantity'] ?? 1,
+            'price' => $b['price'] ?? 0,
+            'status' => 'borrowed',
+        ])->toArray();
 
-            // Validate books
-            foreach ($data['books'] as $book) {
-                if (!$this->bookService->validateBook($book['id_book'])) {
-                    throw new \Exception('Book not found: ' . $book['id_book']);
-                }
-            }
+        $transaction = Transaction::create([
+            'id_member' => $data['id_member'],
+            'transaction_date' => now(),
+        ]);
 
-            // Create transaction
-            $transaction = Transaction::create([
-                'id_member' => $data['id_member'],
-                'transaction_date' => now(),
-                'due_date' => Carbon::parse($data['transaction_date'])->addDays(7),
-                'status' => 'borrowed'
+        foreach ($books as $book) {
+            TransactionDetail::create([
+                'id_transaction' => $transaction->id,
+                'id_book' => $book['id_book'],
+                'quantity' => $book['quantity'],
+                'price' => $book['price'],
             ]);
+        }
 
-            // Create transaction details
-            foreach ($data['books'] as $book) {
-                TransactionDetail::create([
-                    'id_transaction' => $transaction->id,
-                    'id_book' => $book['id_book'],
-                    'quantity' => $book['quantity'] ?? 1,
-                    'price' => $book['price'] ?? 0
-                ]);
 
-                // Update book status in book-service
-                $this->bookService->updateBookStatus($book['id_book'], 'borrowed');
-            }
+        TransactionJob::dispatch($books, $transaction->id)
+            ->onQueue('transaction.book');
+        BookSnaphotJob::dispatch($books, 'borrowed', 'update')
+            ->onQueue('snapshot.book');
 
-            return $this->getTransactionWithDetails($transaction->id);
-        });
+        return $transaction;
     }
 
-    public function returnTransaction($transactionId)
-    {
-        return DB::transaction(function () use ($transactionId) {
-            $transaction = Transaction::findOrFail($transactionId);
 
-            if ($transaction->status === 'returned') {
-                throw new \Exception('Transaction already returned');
-            }
+    public function returnTransaction(string $memberId, array $data)
+    {
+        $bookIds = collect($data['books'])->pluck('id_book')->toArray();
+
+        $transactions = Transaction::where('id_member', $memberId)
+            ->whereHas('transaction_details', function ($query) use ($bookIds) {
+                $query->whereIn('id_book', $bookIds);
+            })
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            throw new \Exception("No borrowed transactions found for this member with given books.");
+        }
+
+        $result = [];
+
+        foreach ($transactions as $transaction) {
+            $books = collect($data['books'])->map(fn($b) => [
+                'id_book' => $b['id_book'],
+                'quantity' => $b['quantity'] ?? 1,
+                'price' => $b['price'] ?? 0,
+                'status' => 'returned',
+            ])->toArray();
 
             $transaction->update([
                 'return_date' => now(),
-                'status' => 'returned'
+                'status' => 'returned',
             ]);
 
-            // Calculate fine if any
             $fine = $this->calculateFine($transaction);
             if ($fine > 0) {
-                $transaction->update(['fine_amount' => $fine]);
+                $transaction->update([
+                    'status' => 'overdue',
+                    'fine_amount' => $fine
+                ]);
             }
 
-            // Update book statuses
-            foreach ($transaction->transaction_details as $detail) {
-                $this->bookService->updateBookStatus($detail->id_book, 'available');
-            }
+            BookSnaphotJob::dispatch($books, 'returned', 'update')
+                ->onQueue('snapshot.book');
 
-            return $this->getTransactionWithDetails($transactionId);
-        });
+            TransactionJob::dispatch($books, $transaction->id)
+                ->onQueue('transaction.book');
+
+            $result[] = $this->getTransactionWithDetails($transaction->id);
+        }
+
+        return $result;
     }
 
     protected function calculateFine(Transaction $transaction)
@@ -103,13 +124,7 @@ class TransactionService
     {
         $transaction = Transaction::with('transaction_details')->findOrFail($transactionId);
 
-        // Get member details from member-service
-        $transaction->member_details = $this->memberService->getMember($transaction->id_member);
-
-        // Get book details from book-service
-        foreach ($transaction->transaction_details as $detail) {
-            $detail->book_details = $this->bookService->getBook($detail->id_book);
-        }
+ 
 
         return $transaction;
     }
@@ -130,5 +145,43 @@ class TransactionService
         }
 
         return $transactions;
+    }
+
+    public function deleteTransaction($memberId, array $data)
+    {
+        $bookIds = collect($data['books'])->pluck('id_book')->toArray();
+
+        $transactions = Transaction::where('id_member', $memberId)
+            ->whereHas('transaction_details', function ($query) use ($bookIds) {
+                $query->whereIn('id_book', $bookIds);
+            })
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            throw new \Exception("No borrowed transactions found for this member with given books.");
+        }
+
+        $result = [];
+
+        foreach ($transactions as $transaction) {
+            $books = collect($data['books'])->map(fn($b) => [
+                'id_book' => $b['id_book'],
+                'quantity' => $b['quantity'] ?? 1,
+                'price' => $b['price'] ?? 0,
+                'status' => 'deleted',
+            ])->toArray();
+
+            // Ambil data sebelum delete
+            $transactionData = $this->getTransactionWithDetails($transaction->id);
+
+            $transaction->delete();
+
+            BookSnaphotJob::dispatch($books, 'deleted', 'delete')
+                ->onQueue('snapshot.book');
+
+            $result[] = $transactionData;
+        }
+
+        return $result;
     }
 }

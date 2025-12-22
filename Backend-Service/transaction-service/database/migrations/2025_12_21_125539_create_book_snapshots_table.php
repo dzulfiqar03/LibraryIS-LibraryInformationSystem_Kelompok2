@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('book_details', function (Blueprint $table) {
+        Schema::create('book_snapshots', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_book')->constrained('books')->onDelete('cascade');
-            $table->string('authors')->nullable();
-            $table->string('languages')->nullable();
-            $table->string('url_cover')->nullable();
-            $table->string('url_ebook')->nullable();
+            $table->uuid('id_book');
             $table->enum('status', ['available','borrowed', 'returned', 'overdue']);
             $table->timestamps();
         });
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('book_details');
+        Schema::dropIfExists('book_snapshots');
     }
 };

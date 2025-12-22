@@ -18,7 +18,7 @@ class TransactionRequest extends FormRequest
         return [
             'id_member' => 'required|string',
             'books' => 'required|array|min:1',
-            'books.*.id_book' => 'required|string',
+            'books.*.id_book' => 'required',
             'books.*.quantity' => 'integer|min:1',
             'books.*.price' => 'numeric|min:0',
             'transaction_date' => 'required|date'
