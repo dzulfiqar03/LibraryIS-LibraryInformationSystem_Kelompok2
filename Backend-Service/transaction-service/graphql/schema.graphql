@@ -47,6 +47,6 @@ type Mutation {
     updateTransaction(id: ID!, input: CreateTransactionInput!): Response
         @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@update")
 
-    deleteTransaction(id: ID!): Response
+    deleteTransaction(id: ID!, input: CreateTransactionInput!): Response
         @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@delete")
 }

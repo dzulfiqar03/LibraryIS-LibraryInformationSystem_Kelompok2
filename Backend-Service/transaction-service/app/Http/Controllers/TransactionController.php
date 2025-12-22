@@ -18,9 +18,7 @@ class TransactionController extends Controller
 
     public function index()
     {
-        $transactions = Transaction::with('transaction_details')
-            ->latest()
-            ->paginate(10);
+        $transactions = $this->transactionService->getAll();
 
         return response()->json([
             'message' => 'Berhasil',

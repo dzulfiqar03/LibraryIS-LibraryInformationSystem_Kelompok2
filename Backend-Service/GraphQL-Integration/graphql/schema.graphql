@@ -1,16 +1,19 @@
 type Query {
-    users: User! 
-        @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@all")
-      
+    users: User! @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@all")
+
     user(id: ID!): Users
         @field(resolver: "App\\GraphQL\\Resolver\\MemberResolver@find")
 
-    books: Book!
-        @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
+    books: Book! @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@all")
 
-    book(id: ID!): Books 
+    book(id: ID!): Books
         @field(resolver: "App\\GraphQL\\Resolver\\BookResolver@find")
-        
+
+    transactions: Transaction
+        @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@all")
+
+    transaction(id: ID!): Transactions
+        @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@find")
 }
 
 type User {
@@ -31,7 +34,7 @@ type UserDetail {
     roles: Role
 }
 
-type Role{
+type Role {
     id: ID
     role: String
 }
@@ -49,7 +52,85 @@ type Books {
 type BookDetail {
     authors: String
     languages: String
-    url-cover: String
-    url-ebook: String
+    url_cover: String
+    url_ebook: String
     status: String
+}
+
+type Transaction {
+    transactionList: [Transactions!]!
+}
+
+type Transactions {
+    id: ID!
+    id_member: String
+    transaction_date: String
+    return_date: String
+    status: String!
+    transaction_details: [TransactionDetail!]!
+}
+
+type TransactionDetail {
+    id: ID
+    id_transaction: String
+    id_book: Int
+    quantity: Int
+    price: Float
+}
+
+input TransactionDetailInput {
+  id_book: Int
+  quantity: Int
+  price: Float
+}
+
+input CreateTransactionInput {
+  id_member: String!
+  transaction_date: String
+  books: [TransactionDetailInput]
+}
+
+type Response {
+  message: String
+  data: [Transactions]
+}
+
+input BookDetailInput {
+  authors: String
+  languages: String
+  url_cover: String
+  url_ebook: String
+  status: String
+}
+
+input CreateBookInput {
+  title: String!
+  detail: BookDetailInput
+}
+
+
+type BookResponse {
+  message: String
+  data: [Books]
+}
+
+type Mutation {
+    createTransaction(input: CreateTransactionInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@create")
+
+    updateTransaction(id: ID!, input: CreateTransactionInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@update")
+
+    deleteTransaction(id: ID!, input: CreateTransactionInput!): Response
+        @field(resolver: "App\\GraphQL\\Mutations\\TransactionMutation@delete")
+
+    createBook(input: CreateBookInput!): BookResponse
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@create")
+    
+    updateBook(id: ID!, input: CreateBookInput!): BookResponse
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@update")
+
+    deleteBook(id: ID!): BookResponse
+        @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@delete")
+
 }

@@ -30,7 +30,7 @@ class TransactionMutation
     public function update($_, array $args)
     {
         app(TransactionService::class)
-            ->returnTransaction($args['id'], $args['input']);
+            ->returnTransaction($args['input']['id_member'], $args['input']);
         return [
             'message' => 'berhasil diupdate',
             'data' => app(TransactionService::class)->getAll()

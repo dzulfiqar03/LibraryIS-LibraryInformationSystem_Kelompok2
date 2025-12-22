@@ -27,6 +27,7 @@ class BookResolver
                 'title' => $book['title'],
                 'book_detail' => [
                     'authors' => $book['book_detail'][0]['authors'] ?? [],
+                    
                 ] ?? []
             ];
         }, $data);
