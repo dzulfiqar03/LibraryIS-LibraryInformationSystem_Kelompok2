@@ -19,7 +19,7 @@ jq ".repository.last_commit = \"$current_time\"" config.json > temp.json && mv t
 
 # Last Commit Update by name
 input_nama="Masukkan Nama Anda"
-echo
+echo $input_nama
 read -r input_nama
 jq ".repository.last_commit_by = \"$input_nama\"" config.json > temp.json && mv temp.json config.json   
 
