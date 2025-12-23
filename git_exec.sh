@@ -7,7 +7,7 @@ git add .
 git checkout develop
 input_commit="Enter commit message: "
 echo $input_commit
-read -r input
+read -r input_commit
 git commit -m "$input_commit"
 git push origin develop
 
@@ -19,8 +19,8 @@ jq ".repository.last_commit = \"$current_time\"" config.json > temp.json && mv t
 
 # Last Commit Update by name
 input_nama="Masukkan Nama Anda"
-echo $input_nama
-read -r input
+echo
+read -r input_nama
 jq ".repository.last_commit_by = \"$input_nama\"" config.json > temp.json && mv temp.json config.json   
 
 echo "Log: File config.json telah diperbarui pada $current_time oleh $input_nama"
