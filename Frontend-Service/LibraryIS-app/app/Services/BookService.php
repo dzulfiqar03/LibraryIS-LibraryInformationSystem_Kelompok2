@@ -12,24 +12,54 @@ class BookService
     }
 
     /**
-     * Search books
+     * Get all books with filtering and pagination
      */
-    public function search(array $filters = [], int $page = 1, int $perPage = 12): ?array
+    public function getAllBooks(array $filters = [], int $page = 1, int $perPage = 12): ?array
     {
-        $params = array_merge($filters, [
+        $response = $this->api->bookGraphql(GraphQLQueries::getAllBooks(), array_merge([
             'page' => $page,
-            'per_page' => $perPage,
-        ]);
+            'perPage' => $perPage,
+        ], $filters));
 
-        return $this->api->get('/books/search', $params);
+        if ($response && isset($response['data']['books'])) {
+            return $response['data']['books'];
+        }
+
+        return $response;
     }
 
     /**
-     * Get book details
+     * Search books
+     */
+    public function search(string $query, int $page = 1, int $perPage = 12): ?array
+    {
+        $response = $this->api->bookGraphql(GraphQLQueries::searchBooks(), [
+            'query' => $query,
+            'page' => $page,
+            'perPage' => $perPage,
+        ]);
+
+        if ($response && isset($response['data']['searchBooks'])) {
+            return $response['data']['searchBooks'];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get book details by ID
      */
     public function getDetail(int $bookId): ?array
     {
-        return $this->api->get("/books/{$bookId}");
+        $response = $this->api->bookGraphql(GraphQLQueries::getBookDetail(), [
+            'id' => (string)$bookId,
+        ]);
+
+        if ($response && isset($response['data']['book'])) {
+            return $response['data']['book'];
+        }
+
+        return $response;
     }
 
     /**
@@ -37,27 +67,63 @@ class BookService
      */
     public function getRecommendations(int $limit = 20): ?array
     {
-        return $this->api->get('/books/recommendations', ['limit' => $limit]);
+        $response = $this->api->bookGraphql(GraphQLQueries::getRecommendations(), [
+            'limit' => $limit,
+        ]);
+
+        if ($response && isset($response['data']['recommendations'])) {
+            return $response['data']['recommendations'];
+        }
+
+        return $response;
     }
 
     /**
-     * Get book by category
+     * Get books by category
      */
     public function getByCategory(string $category, int $page = 1, int $perPage = 12): ?array
     {
-        return $this->api->get('/books', [
+        $response = $this->api->graphql(GraphQLQueries::getBooksByCategory(), [
             'category' => $category,
             'page' => $page,
-            'per_page' => $perPage,
+            'perPage' => $perPage,
         ]);
+
+        if ($response && isset($response['data']['booksByCategory'])) {
+            return $response['data']['booksByCategory'];
+        }
+
+        return $response;
     }
 
     /**
-     * Get featured books
+     * Get all book categories
      */
-    public function getFeatured(int $limit = 10): ?array
+    public function getCategories(): ?array
     {
-        return $this->api->get('/books/featured', ['limit' => $limit]);
+        $response = $this->api->graphql(GraphQLQueries::getCategories());
+
+        if ($response && isset($response['data']['categories'])) {
+            return $response['data']['categories'];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Check book availability
+     */
+    public function checkAvailability(int $bookId): ?array
+    {
+        $response = $this->api->graphql(GraphQLQueries::checkBookAvailability(), [
+            'bookId' => (string)$bookId,
+        ]);
+
+        if ($response && isset($response['data']['book'])) {
+            return $response['data']['book'];
+        }
+
+        return $response;
     }
 
     /**
@@ -65,6 +131,7 @@ class BookService
      */
     public function create(array $data): ?array
     {
+        // This would need a separate mutation - adjust based on your actual schema
         return $this->api->post('/books', $data);
     }
 
@@ -73,6 +140,7 @@ class BookService
      */
     public function update(int $bookId, array $data): ?array
     {
+        // This would need a separate mutation - adjust based on your actual schema
         return $this->api->put("/books/{$bookId}", $data);
     }
 
@@ -81,6 +149,7 @@ class BookService
      */
     public function delete(int $bookId): ?array
     {
+        // This would need a separate mutation - adjust based on your actual schema
         return $this->api->delete("/books/{$bookId}");
     }
 }

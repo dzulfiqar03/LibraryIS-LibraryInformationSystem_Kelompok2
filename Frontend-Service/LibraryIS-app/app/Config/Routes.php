@@ -15,6 +15,8 @@ $routes->group('auth', static function ($routes) {
     $routes->get('logout', 'Auth\AuthController::logout');
     $routes->get('forgot-password', 'Auth\AuthController::forgotPassword');
     $routes->post('forgot-password', 'Auth\AuthController::processForgotPassword');
+    $routes->get('reset-password/(:any)', 'Auth\AuthController::resetPassword/$1');
+    $routes->post('reset-password', 'Auth\AuthController::processResetPassword');
 });
 
 // Member routes (Protected)
@@ -79,6 +81,24 @@ $routes->group('librarian', ['filter' => 'auth'], static function ($routes) {
     
     // Reports
     $routes->get('reports', 'Librarian\ReportController::index');
+});
+
+// API routes (Protected)
+$routes->group('api', ['filter' => 'auth'], static function ($routes) {
+    // Book API
+    $routes->group('books', static function ($routes) {
+        $routes->get('/', 'Api\BookApiController::index');
+        $routes->post('search', 'Api\BookApiController::search');
+        $routes->get('(:num)', 'Api\BookApiController::detail/$1');
+    });
+    
+    // Borrowing API
+    $routes->group('borrowings', static function ($routes) {
+        $routes->get('/', 'Api\BorrowingApiController::index');
+        $routes->post('borrow', 'Api\BorrowingApiController::borrow');
+        $routes->post('reserve', 'Api\BorrowingApiController::reserve');
+        $routes->post('return', 'Api\BorrowingApiController::return');
+    });
 });
 
 // Fallback route

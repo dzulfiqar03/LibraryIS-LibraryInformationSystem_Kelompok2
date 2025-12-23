@@ -339,10 +339,36 @@ function searchBooks() {
             maxPrice: 100
         },
         sortBy: 'relevance',
-        searchBooks() {
-            console.log('Searching with:', this.query);
-            // Will integrate with API later
+        loading: false,
+        results: [],
+        
+        async searchBooks() {
+            this.loading = true;
+            try {
+                const response = await fetch('<?= site_url('api/books/search') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.query),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    this.results = data.books || [];
+                    console.log('Search results:', this.results);
+                } else {
+                    alert('Search failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                alert('Error performing search');
+            } finally {
+                this.loading = false;
+            }
         },
+        
         resetFilters() {
             this.query = {
                 search: '',
@@ -356,17 +382,67 @@ function searchBooks() {
                 maxPrice: 100
             };
             this.sortBy = 'relevance';
+            this.results = [];
         },
+        
         applyFilters() {
             this.searchBooks();
         },
-        borrowBook(bookId) {
-            console.log('Borrowing book:', bookId);
-            // Will integrate with API later
+        
+        async borrowBook(bookId) {
+            if (!confirm('Borrow this book?')) return;
+            
+            try {
+                const response = await fetch('<?= site_url('api/borrowings/borrow') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Book borrowed successfully!');
+                    this.searchBooks();
+                } else {
+                    alert('Failed to borrow: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Borrow error:', error);
+                alert('Error borrowing book');
+            }
         },
-        reserveBook(bookId) {
-            console.log('Reserving book:', bookId);
-            // Will integrate with API later
+        
+        async reserveBook(bookId) {
+            if (!confirm('Reserve this book?')) return;
+            
+            try {
+                const response = await fetch('<?= site_url('api/borrowings/reserve') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Book reserved successfully!');
+                    this.searchBooks();
+                } else {
+                    alert('Failed to reserve: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Reserve error:', error);
+                alert('Error reserving book');
+            }
         }
     }
 }

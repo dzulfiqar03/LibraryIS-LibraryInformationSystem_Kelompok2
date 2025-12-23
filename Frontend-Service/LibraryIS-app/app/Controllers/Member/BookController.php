@@ -9,10 +9,10 @@ class BookController extends BaseController
     public function search()
     {
         // TODO: Fetch search results from backend API based on query parameters
-        $searchQuery = $this->request->getGet('search');
-        $category = $this->request->getGet('category');
-        $language = $this->request->getGet('language');
-        $sortBy = $this->request->getGet('sort', 'relevance');
+        $searchQuery = $this->request->getGet('search') ?? '';
+        $category = $this->request->getGet('category') ?? '';
+        $language = $this->request->getGet('language') ?? '';
+        $sortBy = $this->request->getGet('sort') ?? 'relevance';
 
         $data = [
             'searchQuery' => $searchQuery,

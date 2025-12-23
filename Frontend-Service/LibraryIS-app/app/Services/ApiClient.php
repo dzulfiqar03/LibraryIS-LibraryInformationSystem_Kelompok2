@@ -2,29 +2,136 @@
 
 namespace App\Services;
 
-use CodeIgniter\HTTP\Client\Client;
-use CodeIgniter\HTTP\Client\Response;
-
 class ApiClient
 {
-    protected Client $client;
-    protected string $baseUrl;
+    protected string $graphqlUrl;
+    protected string $bookServiceUrl;
+    protected string $transactionServiceUrl;
     protected ?string $token = null;
 
     public function __construct()
     {
-        $this->client = new Client([
-            'timeout' => 10,
-            'verify' => false, // Only for development
-        ]);
-
-        // Set base URL from environment
-        $this->baseUrl = getenv('API_BASE_URL') ?? 'http://localhost:3000/api';
+        // Set URLs from environment
+        $this->graphqlUrl = getenv('GRAPHQL_SERVICE_URL') ?? 'http://127.0.0.1:8000/api/graphql';
+        $this->bookServiceUrl = getenv('BOOK_SERVICE_URL') ?? 'http://127.0.0.1:8002/api/graphql';
+        $this->transactionServiceUrl = getenv('TRANSACTION_SERVICE_URL') ?? 'http://127.0.0.1:8003/api/graphql';
 
         // Get token from session if exists
-        if (session()->has('api_token')) {
-            $this->token = session()->get('api_token');
+        if (session()->has('jwt_token')) {
+            $this->token = session()->get('jwt_token');
         }
+    }
+
+    /**
+     * Execute GraphQL query to GraphQL Integration Service
+     */
+    public function graphql(string $query, array $variables = []): ?array
+    {
+        return $this->executeGraphQL($this->graphqlUrl, $query, $variables);
+    }
+
+    /**
+     * Execute GraphQL query to Book Service
+     */
+    public function bookGraphql(string $query, array $variables = []): ?array
+    {
+        return $this->executeGraphQL($this->bookServiceUrl, $query, $variables);
+    }
+
+    /**
+     * Execute GraphQL query to Transaction Service
+     */
+    public function transactionGraphql(string $query, array $variables = []): ?array
+    {
+        return $this->executeGraphQL($this->transactionServiceUrl, $query, $variables);
+    }
+
+    /**
+     * Execute GraphQL query
+     */
+    protected function executeGraphQL(string $url, string $query, array $variables = []): ?array
+    {
+        try {
+            $payload = [
+                'query' => $query,
+            ];
+
+            if (!empty($variables)) {
+                $payload['variables'] = $variables;
+            }
+
+            $response = $this->curlPost($url, $payload, $this->getHeaders());
+            return $this->handleResponse($response);
+        } catch (\Exception $e) {
+            log_message('error', 'GraphQL Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Make POST request using cURL
+     */
+    protected function curlPost(string $url, array $data, array $headers = []): string
+    {
+        $ch = curl_init($url);
+        
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => $this->formatHeaders($headers),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+
+        $response = curl_exec($ch);
+        
+        if (curl_errno($ch)) {
+            log_message('error', 'cURL Error: ' . curl_error($ch));
+        }
+        
+        curl_close($ch);
+        
+        return $response ?: '';
+    }
+
+    /**
+     * Make GET request using cURL
+     */
+    protected function curlGet(string $url, array $headers = []): string
+    {
+        $ch = curl_init($url);
+        
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_HTTPHEADER => $this->formatHeaders($headers),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+
+        $response = curl_exec($ch);
+        
+        if (curl_errno($ch)) {
+            log_message('error', 'cURL Error: ' . curl_error($ch));
+        }
+        
+        curl_close($ch);
+        
+        return $response ?: '';
+    }
+
+    /**
+     * Format headers array for cURL
+     */
+    protected function formatHeaders(array $headers): array
+    {
+        $formatted = [];
+        foreach ($headers as $key => $value) {
+            $formatted[] = "$key: $value";
+        }
+        return $formatted;
     }
 
     /**
@@ -33,13 +140,12 @@ class ApiClient
     public function get(string $endpoint, array $params = []): ?array
     {
         try {
-            $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
+            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            if (!empty($params)) {
+                $url .= '?' . http_build_query($params);
+            }
             
-            $response = $this->client->get($url, [
-                'headers' => $this->getHeaders(),
-                'query' => $params,
-            ]);
-
+            $response = $this->curlGet($url, $this->getHeaders());
             return $this->handleResponse($response);
         } catch (\Exception $e) {
             log_message('error', 'API GET Error: ' . $e->getMessage());
@@ -53,13 +159,8 @@ class ApiClient
     public function post(string $endpoint, array $data = []): ?array
     {
         try {
-            $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
-            
-            $response = $this->client->post($url, [
-                'headers' => $this->getHeaders(),
-                'json' => $data,
-            ]);
-
+            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            $response = $this->curlPost($url, $data, $this->getHeaders());
             return $this->handleResponse($response);
         } catch (\Exception $e) {
             log_message('error', 'API POST Error: ' . $e->getMessage());
@@ -73,14 +174,24 @@ class ApiClient
     public function put(string $endpoint, array $data = []): ?array
     {
         try {
-            $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
+            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
             
-            $response = $this->client->put($url, [
-                'headers' => $this->getHeaders(),
-                'json' => $data,
+            $ch = curl_init($url);
+            
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_CUSTOMREQUEST => 'PUT',
+                CURLOPT_POSTFIELDS => json_encode($data),
+                CURLOPT_HTTPHEADER => $this->formatHeaders($this->getHeaders()),
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
             ]);
 
-            return $this->handleResponse($response);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            return $this->handleResponse($response ?: '');
         } catch (\Exception $e) {
             log_message('error', 'API PUT Error: ' . $e->getMessage());
             return null;
@@ -93,13 +204,23 @@ class ApiClient
     public function delete(string $endpoint): ?array
     {
         try {
-            $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
+            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
             
-            $response = $this->client->delete($url, [
-                'headers' => $this->getHeaders(),
+            $ch = curl_init($url);
+            
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_CUSTOMREQUEST => 'DELETE',
+                CURLOPT_HTTPHEADER => $this->formatHeaders($this->getHeaders()),
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
             ]);
 
-            return $this->handleResponse($response);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            return $this->handleResponse($response ?: '');
         } catch (\Exception $e) {
             log_message('error', 'API DELETE Error: ' . $e->getMessage());
             return null;
@@ -107,12 +228,29 @@ class ApiClient
     }
 
     /**
-     * Set authentication token
+     * Set JWT authentication token
      */
     public function setToken(string $token): void
     {
         $this->token = $token;
-        session()->set('api_token', $token);
+        session()->set('jwt_token', $token);
+    }
+
+    /**
+     * Get current token
+     */
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    /**
+     * Clear authentication token
+     */
+    public function clearToken(): void
+    {
+        $this->token = null;
+        session()->remove('jwt_token');
     }
 
     /**
@@ -135,22 +273,40 @@ class ApiClient
     /**
      * Handle API response
      */
-    protected function handleResponse(Response $response): ?array
+    protected function handleResponse(string $response): ?array
     {
-        $statusCode = $response->getStatusCode();
-
-        if ($statusCode === 401) {
-            // Token expired or invalid
-            session()->destroy();
+        if (empty($response)) {
+            log_message('warning', 'Empty API response');
             return null;
         }
 
-        if ($statusCode >= 200 && $statusCode < 300) {
-            $body = $response->getBody();
-            return json_decode($body, true) ?? [];
-        }
+        try {
+            $data = json_decode($response, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                log_message('error', 'JSON decode error: ' . json_last_error_msg());
+                return null;
+            }
 
-        log_message('warning', 'API Error: ' . $statusCode . ' ' . $response->getBody());
-        return null;
+            // Check for GraphQL errors
+            if (isset($data['errors'])) {
+                $errors = $data['errors'];
+                if (is_array($errors) && count($errors) > 0) {
+                    $errorMsg = $errors[0]['message'] ?? 'Unknown GraphQL error';
+                    log_message('warning', 'GraphQL Error: ' . $errorMsg);
+                    
+                    // Check for authentication errors
+                    if (stripos($errorMsg, 'unauthorized') !== false || stripos($errorMsg, 'unauthenticated') !== false) {
+                        $this->clearToken();
+                    }
+                }
+                return $data;
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            log_message('error', 'Response handling error: ' . $e->getMessage());
+            return null;
+        }
     }
 }

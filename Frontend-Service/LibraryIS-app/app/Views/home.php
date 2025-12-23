@@ -23,7 +23,7 @@
                     <a href="<?= site_url('auth/login') ?>" class="text-gray-700 hover:text-primary-600 font-medium text-sm">
                         Sign In
                     </a>
-                    <a href="<?= site_url('auth/login') ?>" class="btn btn-primary btn-sm">
+                    <a href="<?= site_url('auth/register') ?>" class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-700 transition">
                         Get Started
                     </a>
                 </div>
@@ -79,11 +79,11 @@
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-6">
-                    <a href="<?= site_url('auth/login') ?>" class="btn btn-primary text-center">
-                        <span>Sign In to Your Account</span>
+                    <a href="<?= site_url('auth/login') ?>" class="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition">
+                        Sign In to Your Account
                     </a>
-                    <a href="<?= site_url('auth/register') ?>" class="btn btn-outline text-center">
-                        <span>Create New Account</span>
+                    <a href="<?= site_url('auth/register') ?>" class="px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-medium text-center hover:bg-primary-50 transition">
+                        Create New Account
                     </a>
                 </div>
             </div>
@@ -252,11 +252,11 @@
                 Join LibraryIS today and discover your next favorite book from our extensive collection.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="<?= site_url('auth/register') ?>" class="btn btn-primary">
-                    <span>Create Free Account</span>
+                <a href="<?= site_url('auth/register') ?>" class="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium text-center hover:bg-primary-700 transition">
+                    Create Free Account
                 </a>
-                <a href="<?= site_url('auth/login') ?>" class="btn btn-outline">
-                    <span>Already have an account?</span>
+                <a href="<?= site_url('auth/login') ?>" class="px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-medium text-center hover:bg-primary-50 transition">
+                    Already have an account?
                 </a>
             </div>
         </div>

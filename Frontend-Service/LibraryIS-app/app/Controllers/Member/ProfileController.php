@@ -13,7 +13,7 @@ class ProfileController extends BaseController
             'user' => session()->get('user'),
         ];
 
-        return view('member/profile/index', $data);
+        return view('member/profile', $data);
     }
 
     public function update()
@@ -22,7 +22,7 @@ class ProfileController extends BaseController
         $rules = [
             'name' => 'required|min_length[3]',
             'email' => 'required|valid_email',
-            'phone' => 'permit_empty|valid_phone',
+            'phone' => 'permit_empty',
             'address' => 'permit_empty',
         ];
 
@@ -33,7 +33,7 @@ class ProfileController extends BaseController
         }
 
         // TODO: Call backend API to update profile
-        session()->setFlash('success', 'Profile updated successfully');
+        session()->set('success', 'Profile updated successfully');
         return redirect()->to('/member/profile');
     }
 
@@ -45,13 +45,13 @@ class ProfileController extends BaseController
             'settings' => [],
         ];
 
-        return view('member/profile/settings', $data);
+        return view('member/settings', $data);
     }
 
     public function updateSettings()
     {
         // TODO: Call backend API to update settings
-        session()->setFlash('success', 'Settings updated successfully');
+        session()->set('success', 'Settings updated successfully');
         return redirect()->to('/member/settings');
     }
 }

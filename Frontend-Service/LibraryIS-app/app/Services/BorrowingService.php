@@ -12,94 +12,152 @@ class BorrowingService
     }
 
     /**
-     * Get member borrowings
+     * Get member borrowing history with pagination and filtering
+     * Requires JWT token
      */
-    public function getBorrowings(int $page = 1, int $perPage = 10): ?array
+    public function getBorrowings(int $page = 1, int $perPage = 10, string $status = null): ?array
     {
-        return $this->api->get('/borrowings', [
+        $variables = [
             'page' => $page,
-            'per_page' => $perPage,
-        ]);
+            'perPage' => $perPage,
+        ];
+
+        if ($status) {
+            $variables['status'] = $status;
+        }
+
+        $response = $this->api->transactionGraphql(GraphQLQueries::getBorrowings(), $variables);
+
+        if ($response && isset($response['data']['borrowings'])) {
+            return $response['data']['borrowings'];
+        }
+
+        return $response;
     }
 
     /**
-     * Get borrowing detail
+     * Get borrowing detail by ID
+     * Requires JWT token
      */
     public function getDetail(int $borrowingId): ?array
     {
-        return $this->api->get("/borrowings/{$borrowingId}");
+        $response = $this->api->transactionGraphql(GraphQLQueries::getBorrowingDetail(), [
+            'id' => (string)$borrowingId,
+        ]);
+
+        if ($response && isset($response['data']['borrowing'])) {
+            return $response['data']['borrowing'];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get currently active borrowings (not yet returned)
+     * Requires JWT token
+     */
+    public function getActiveBorrowings(): ?array
+    {
+        $response = $this->api->transactionGraphql(GraphQLQueries::getActiveBorrowings());
+
+        if ($response && isset($response['data']['activeBorrowings'])) {
+            return $response['data']['activeBorrowings'];
+        }
+
+        return $response;
     }
 
     /**
      * Borrow a book
+     * Requires JWT token
      */
     public function borrow(int $bookId): ?array
     {
-        return $this->api->post('/borrowings', [
-            'book_id' => $bookId,
+        $response = $this->api->transactionGraphql(GraphQLQueries::borrowBook(), [
+            'bookId' => (string)$bookId,
         ]);
+
+        if ($response && isset($response['data']['borrowBook'])) {
+            return $response['data']['borrowBook'];
+        }
+
+        return $response;
     }
 
     /**
-     * Return a book
+     * Return a borrowed book
+     * Requires JWT token
      */
     public function return(int $borrowingId): ?array
     {
-        return $this->api->post("/borrowings/{$borrowingId}/return", []);
+        $response = $this->api->transactionGraphql(GraphQLQueries::returnBook(), [
+            'borrowingId' => (string)$borrowingId,
+        ]);
+
+        if ($response && isset($response['data']['returnBook'])) {
+            return $response['data']['returnBook'];
+        }
+
+        return $response;
     }
 
     /**
-     * Reserve a book
+     * Reserve a book (when not available)
+     * Requires JWT token
      */
     public function reserve(int $bookId): ?array
     {
-        return $this->api->post('/reservations', [
-            'book_id' => $bookId,
-        ]);
+        // Note: This would need a separate mutation in your GraphQL schema
+        // For now, return null if not implemented
+        return null;
     }
 
     /**
-     * Cancel reservation
+     * Cancel a book reservation
+     * Requires JWT token
      */
     public function cancelReservation(int $reservationId): ?array
     {
-        return $this->api->delete("/reservations/{$reservationId}");
+        // Note: This would need a separate mutation in your GraphQL schema
+        return null;
     }
 
     /**
-     * Get user's fines
+     * Get user's outstanding fines
+     * Requires JWT token
      */
     public function getFines(): ?array
     {
-        return $this->api->get('/fines');
+        // Note: This would need a separate query in your GraphQL schema
+        return null;
     }
 
     /**
-     * Pay fine
+     * Pay a fine
+     * Requires JWT token
      */
     public function payFine(int $fineId, float $amount): ?array
     {
-        return $this->api->post("/fines/{$fineId}/pay", [
-            'amount' => $amount,
-        ]);
+        // Note: This would need a separate mutation in your GraphQL schema
+        return null;
     }
 
     /**
-     * Get overdue books (Librarian)
+     * Get overdue books (Librarian only)
      */
     public function getOverdueBooks(int $page = 1, int $perPage = 10): ?array
     {
-        return $this->api->get('/borrowings/overdue', [
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
+        // Note: This would need a separate query in your GraphQL schema
+        return null;
     }
 
     /**
-     * Process return (Librarian)
+     * Process book return (Librarian only)
      */
     public function processReturn(int $borrowingId, array $data = []): ?array
     {
-        return $this->api->post("/borrowings/{$borrowingId}/process-return", $data);
+        // Note: This would need a separate mutation in your GraphQL schema
+        return null;
     }
 }
+

@@ -27,7 +27,7 @@ class BorrowingController extends BaseController
             'borrowing' => [],
         ];
 
-        return view('member/borrowings/detail', $data);
+        return view('member/borrowings/index', $data);
     }
 
     public function borrow()
@@ -50,7 +50,7 @@ class BorrowingController extends BaseController
             'borrowings' => [],
         ];
 
-        return view('member/borrowings/return', $data);
+        return view('member/borrowings/index', $data);
     }
 
     public function return()

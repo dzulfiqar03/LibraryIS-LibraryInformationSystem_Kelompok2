@@ -16,32 +16,46 @@ class AuthController extends Controller
 {
     public function Register(AuthRequest $request)
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $user = User::create(
-            [
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]
-        );
+            $user = User::create(
+                [
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                ]
+            );
 
-        UserDetail::create([
-            'id_user' => $user->id,
-            'username' => $data['username'],
-            'name' => $data['name'],
-            'id_role' => $data['id_role'],
-            'telephone_number' => $data['telephone_number'],
-            'address' => $data['address'],
-        ]);
+            UserDetail::create([
+                'id_user' => $user->id,
+                'username' => $data['username'],
+                'name' => $data['name'],
+                'id_role' => $data['id_role'],
+                'telephone_number' => $data['telephone_number'],
+                'address' => $data['address'],
+            ]);
 
-        $token = auth()->login($user);
+            // Generate JWT token
+            $token = auth()->login($user);
+            
+            if (!$token) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to generate authentication token',
+                ], 500);
+            }
 
-        return new AuthResponseResources([
-            'auth' => 'Register',
-            'token' => $token,
-            'status' => 'Register Berhasil',
-
-        ],);
+            return new AuthResponseResources([
+                'auth' => 'Register',
+                'token' => $token,
+                'status' => 'Register Berhasil',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function login(AuthRequest $request)
