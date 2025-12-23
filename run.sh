@@ -88,6 +88,7 @@ echo "---------------------------------------------------"
 
 # Pilih untuk menghentikan layanan
 input="Masukkan pilihan Anda: "
+echo $input
 read -r input
 # gateway to read
 if [ "$input" = 1 ]; then
