@@ -1,0 +1,74 @@
+{
+  "application": "LibraryIS",
+  "version": "1.0.0",
+  "services": [
+    {
+      "name": "GraphQL-Integration",
+      "path": "Backend-Service/GraphQL-Integration/",
+      "port": 8000,
+      "description": "Service untuk mengintegrasikan GraphQL dengan layanan lainnya."
+    },
+    {
+      "name": "User-Service",
+      "path": "Backend-Service/member-service/",
+      "port": 8001,
+      "description": "Service untuk manajemen data pengguna."
+    },
+    {
+      "name": "Book-Service",
+      "path": "Backend-Service/book-service/",
+      "port": 8002,
+      "description": "Service untuk manajemen data buku."
+    },
+    {
+      "name": "Transaction-Service",
+      "path": "Backend-Service/transaction-service/",
+      "port": 8003,
+      "description": "Service untuk manajemen transaksi peminjaman buku."
+    }
+  ],
+  "frontend": {
+    "name": "LibraryIS-app",
+    "path": "Frontend-Service/LibraryIS-app/",
+    "description": "Aplikasi frontend untuk LibraryIS."
+  },
+  "worker": {
+    "name": "Queue Worker",
+    "path": "Backend-Service/",
+    "command": "php artisan queue:work",
+    "description": "Worker untuk memproses antrian tugas latar belakang."
+  },
+  "notes": "Pastikan semua dependensi telah diinstal sebelum menjalankan layanan.",
+  "license": "MIT",
+  "last_updated": "2025-12-23 15:36:57",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourname/libraryis.git",
+    "last_commit": "2025-12-23 15:19:18",
+    "last_commit_by": "Masukkan Nama Anda"
+  },
+  "contact": [
+    {
+      "name": "Muhammad Dzulfiqar",
+      "email": "muhammaddzulfiqar03@gmail.com"
+    },
+    {
+      "name": "Project Maintainer",
+      "email": "maintainer@example.com"
+    },
+    {
+      "name": "Support",
+      "email": "support@example.com"
+    },
+    {
+      "name": "Documentation",
+      "email": "documentation@example.com"
+    }
+  ],
+  "scripts": {
+    "start_all": "sh run.sh",
+    "run_instructions": "Jalankan script untuk memulai semua layanan dan frontend.",
+    "stop_all": "sh stop.sh",
+    "stop_instructions": "Gunakan script untuk menghentikan worker dan hentikan layanan lainnya sesuai kebutuhan."
+  }
+}
