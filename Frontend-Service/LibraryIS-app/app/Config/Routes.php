@@ -46,6 +46,23 @@ $routes->group('member', ['filter' => 'auth'], static function ($routes) {
     $routes->put('settings', 'Member\ProfileController::updateSettings');
 });
 
+// Admin routes (Protected)
+$routes->group('admin', ['filter' => 'auth'], static function ($routes) {
+    $routes->get('dashboard', 'Admin\DashboardController::index');
+    
+    // Book management
+    $routes->group('books', static function ($routes) {
+        $routes->get('/', 'Admin\BookController::index');
+        $routes->get('create', 'Admin\BookController::create');
+        $routes->post('store', 'Admin\BookController::store');
+        $routes->get('(:num)', 'Admin\BookController::show/$1');
+        $routes->get('(:num)/edit', 'Admin\BookController::edit/$1');
+        $routes->post('(:num)/update', 'Admin\BookController::update/$1');
+        $routes->get('(:num)/delete', 'Admin\BookController::delete/$1');
+        $routes->post('(:num)/delete', 'Admin\BookController::delete/$1');
+    });
+});
+
 // Librarian routes (Protected)
 $routes->group('librarian', ['filter' => 'auth'], static function ($routes) {
     $routes->get('dashboard', 'Librarian\DashboardController::index');
@@ -98,6 +115,22 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
         $routes->post('borrow', 'Api\BorrowingApiController::borrow');
         $routes->post('reserve', 'Api\BorrowingApiController::reserve');
         $routes->post('return', 'Api\BorrowingApiController::return');
+    });
+
+    // Wishlist API
+    $routes->group('wishlist', static function ($routes) {
+        $routes->get('/', 'Api\WishlistApiController::index');
+        $routes->post('toggle', 'Api\WishlistApiController::toggle');
+    });
+
+    // Settings API
+    $routes->group('settings', static function ($routes) {
+        $routes->post('update', 'Api\SettingsApiController::update');
+    });
+
+    // Account API
+    $routes->group('account', static function ($routes) {
+        $routes->delete('delete', 'Api\AccountApiController::delete');
     });
 });
 

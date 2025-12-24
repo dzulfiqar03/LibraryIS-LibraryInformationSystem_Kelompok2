@@ -37,7 +37,7 @@ class AuthController extends Controller
 
             // Generate JWT token
             $token = auth()->login($user);
-            
+
             if (!$token) {
                 return response()->json([
                     'success' => false,

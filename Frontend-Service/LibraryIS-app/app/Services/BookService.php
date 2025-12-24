@@ -2,13 +2,26 @@
 
 namespace App\Services;
 
+use CodeIgniter\HTTP\CURLRequest;
+
 class BookService
 {
-    protected ApiClient $api;
+    protected string $baseUrl = 'http://127.0.0.1:8000/api/';  // Adjust if needed from .env
+    protected CURLRequest $client;
 
     public function __construct()
     {
-        $this->api = new ApiClient();
+        $this->client = \Config\Services::curlrequest();
+    }
+
+    private function getHeaders(): array
+    {
+        $token = session()->get('jwt_token');
+        return [
+            'Authorization' => $token ? 'Bearer ' . $token : '',
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ];
     }
 
     /**
@@ -16,34 +29,56 @@ class BookService
      */
     public function getAllBooks(array $filters = [], int $page = 1, int $perPage = 12): ?array
     {
-        $response = $this->api->bookGraphql(GraphQLQueries::getAllBooks(), array_merge([
-            'page' => $page,
-            'perPage' => $perPage,
-        ], $filters));
+        try {
+            $response = $this->client->get($this->baseUrl . 'allBook', [
+                'headers' => $this->getHeaders(),
+                'query' => array_merge([
+                    'page' => $page,
+                    'per_page' => $perPage  // Adjust if backend uses 'per_page'
+                ], $filters)
+            ]);
 
-        if ($response && isset($response['data']['books'])) {
-            return $response['data']['books'];
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody(), true);
+                return $data['data'] ?? $data ?? [];
+            }
+
+            throw new \Exception('Failed to fetch books. Status: ' . $response->getStatusCode());
+        } catch (\Exception $e) {
+            log_message('error', 'Get all books error: ' . $e->getMessage());
+            return null;
         }
-
-        return $response;
     }
 
     /**
-     * Search books
+     * Search books - Since no search endpoint, fetch all and filter (or add to backend)
      */
     public function search(string $query, int $page = 1, int $perPage = 12): ?array
     {
-        $response = $this->api->bookGraphql(GraphQLQueries::searchBooks(), [
-            'query' => $query,
-            'page' => $page,
-            'perPage' => $perPage,
-        ]);
+        $allBooks = $this->getAllBooks([], 1, 100);  // Fetch larger set for filtering
 
-        if ($response && isset($response['data']['searchBooks'])) {
-            return $response['data']['searchBooks'];
+        if (!$allBooks) {
+            return null;
         }
 
-        return $response;
+        $filtered = array_filter($allBooks, function ($book) use ($query) {
+            $search = strtolower($query);
+            return str_contains(strtolower($book['title'] ?? ''), $search) ||
+                   str_contains(strtolower($book['author'] ?? ''), $search) ||
+                   str_contains(strtolower($book['isbn'] ?? ''), $search);
+        });
+
+        $offset = ($page - 1) * $perPage;
+        $paginated = array_slice($filtered, $offset, $perPage);
+
+        return [
+            'data' => $paginated,
+            'pagination' => [
+                'current_page' => $page,
+                'total_pages' => ceil(count($filtered) / $perPage),
+                'total' => count($filtered)
+            ]
+        ];
     }
 
     /**
@@ -51,63 +86,41 @@ class BookService
      */
     public function getDetail(int $bookId): ?array
     {
-        $response = $this->api->bookGraphql(GraphQLQueries::getBookDetail(), [
-            'id' => (string)$bookId,
-        ]);
+        try {
+            $response = $this->client->get($this->baseUrl . "Book/{$bookId}", [
+                'headers' => $this->getHeaders()
+            ]);
 
-        if ($response && isset($response['data']['book'])) {
-            return $response['data']['book'];
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody(), true);
+                return $data['data'] ?? $data ?? null;
+            }
+
+            throw new \Exception('Book not found. Status: ' . $response->getStatusCode());
+        } catch (\Exception $e) {
+            log_message('error', 'Get book detail error: ' . $e->getMessage());
+            return null;
         }
-
-        return $response;
     }
 
     /**
-     * Get book recommendations
+     * Get book recommendations - Random from all
      */
     public function getRecommendations(int $limit = 20): ?array
     {
-        $response = $this->api->bookGraphql(GraphQLQueries::getRecommendations(), [
-            'limit' => $limit,
-        ]);
+        $allBooks = $this->getAllBooks([], 1, 100);
+        if (!$allBooks) return null;
 
-        if ($response && isset($response['data']['recommendations'])) {
-            return $response['data']['recommendations'];
-        }
-
-        return $response;
+        shuffle($allBooks);
+        return array_slice($allBooks, 0, $limit);
     }
 
     /**
-     * Get books by category
+     * Get books by category - Filter from all
      */
     public function getByCategory(string $category, int $page = 1, int $perPage = 12): ?array
     {
-        $response = $this->api->graphql(GraphQLQueries::getBooksByCategory(), [
-            'category' => $category,
-            'page' => $page,
-            'perPage' => $perPage,
-        ]);
-
-        if ($response && isset($response['data']['booksByCategory'])) {
-            return $response['data']['booksByCategory'];
-        }
-
-        return $response;
-    }
-
-    /**
-     * Get all book categories
-     */
-    public function getCategories(): ?array
-    {
-        $response = $this->api->graphql(GraphQLQueries::getCategories());
-
-        if ($response && isset($response['data']['categories'])) {
-            return $response['data']['categories'];
-        }
-
-        return $response;
+        return $this->search($category, $page, $perPage);
     }
 
     /**
@@ -115,41 +128,92 @@ class BookService
      */
     public function checkAvailability(int $bookId): ?array
     {
-        $response = $this->api->graphql(GraphQLQueries::checkBookAvailability(), [
-            'bookId' => (string)$bookId,
-        ]);
+        $book = $this->getDetail($bookId);
+        if (!$book) return null;
 
-        if ($response && isset($response['data']['book'])) {
-            return $response['data']['book'];
+        return [
+            'available' => ($book['quantity'] ?? 0) > 0
+        ];
+    }
+
+    /**
+     * Get book by ID (alias)
+     */
+    public function getBookById(int $bookId): ?array
+    {
+        return $this->getDetail($bookId);
+    }
+
+    /**
+     * Create book (Admin only)
+     */
+    public function createBook(array $data): ?array
+    {
+        try {
+            $response = $this->client->post($this->baseUrl . 'Book/store', [
+                'headers' => $this->getHeaders(),
+                'json' => $data
+            ]);
+
+            if ($response->getStatusCode() === 200 || $response->getStatusCode() === 201) {
+                $result = json_decode($response->getBody(), true);
+                return $result['data'] ?? $result ?? [];
+            }
+
+            throw new \Exception('Failed to create book. Status: ' . $response->getStatusCode());
+        } catch (\Exception $e) {
+            log_message('error', 'Create book error: ' . $e->getMessage());
+            return null;
         }
-
-        return $response;
     }
 
     /**
-     * Create book (Librarian only)
+     * Update book (Admin only)
      */
-    public function create(array $data): ?array
+    public function updateBook(int $bookId, array $data): ?array
     {
-        // This would need a separate mutation - adjust based on your actual schema
-        return $this->api->post('/books', $data);
+        try {
+            $response = $this->client->put($this->baseUrl . "Book/update/{$bookId}", [
+                'headers' => $this->getHeaders(),
+                'json' => $data
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $result = json_decode($response->getBody(), true);
+                return $result['data'] ?? $result ?? [];
+            }
+
+            throw new \Exception('Failed to update book. Status: ' . $response->getStatusCode());
+        } catch (\Exception $e) {
+            log_message('error', 'Update book error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
-     * Update book (Librarian only)
+     * Delete book (Admin only)
      */
-    public function update(int $bookId, array $data): ?array
+    public function deleteBook(int $bookId): ?array
     {
-        // This would need a separate mutation - adjust based on your actual schema
-        return $this->api->put("/books/{$bookId}", $data);
+        try {
+            $response = $this->client->delete($this->baseUrl . "Book/delete/{$bookId}", [
+                'headers' => $this->getHeaders()
+            ]);
+
+            if ($response->getStatusCode() === 200 || $response->getStatusCode() === 204) {
+                $result = json_decode($response->getBody(), true);
+                return $result['data'] ?? $result ?? [];
+            }
+
+            throw new \Exception('Failed to delete book. Status: ' . $response->getStatusCode());
+        } catch (\Exception $e) {
+            log_message('error', 'Delete book error: ' . $e->getMessage());
+            return null;
+        }
     }
 
-    /**
-     * Delete book (Librarian only)
-     */
-    public function delete(int $bookId): ?array
-    {
-        // This would need a separate mutation - adjust based on your actual schema
-        return $this->api->delete("/books/{$bookId}");
-    }
+    // Backward compatibility
+    public function create(array $data): ?array { return $this->createBook($data); }
+    public function update(int $bookId, array $data): ?array { return $this->updateBook($bookId, $data); }
+    public function delete(int $bookId): ?array { return $this->deleteBook($bookId); }
 }

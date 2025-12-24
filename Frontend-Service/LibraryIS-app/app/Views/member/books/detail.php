@@ -3,6 +3,7 @@
 <?= $this->section('title') ?>Book Details<?= $this->endSection() ?>
 
 <?= $this->section('page_content') ?>
+<div x-data="bookDetail()">
 <!-- Breadcrumb -->
 <nav class="flex gap-2 text-sm mb-6">
     <a href="<?= site_url('/') ?>" class="text-gray-600 hover:text-gray-900">Home</a>
@@ -23,19 +24,19 @@
         </div>
 
         <div class="space-y-3">
-            <button class="btn-primary w-full">
+            <button @click="borrowBook(1)" :disabled="loading" class="btn-primary w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Borrow This Book
+                <span x-text="loading ? 'Loading...' : 'Borrow This Book'"></span>
             </button>
-            <button class="btn-secondary w-full">
+            <button @click="addToWishlist()" class="btn-secondary w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path>
                 </svg>
                 Add to Wishlist
             </button>
-            <button class="btn-outline w-full">
+            <button @click="shareBook()" class="btn-outline w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.922 10.938 12.114 9 14.5 9c.658 0 1.297.098 1.9.28m-1.646 2.645L12 13m-4.223 1.77c-.693.692-1.18 1.55-1.327 2.53m4.368-8.076A10 10 0 1 1 5 12a9.994 9.994 0 015.922 1.756z"></path>
                 </svg>
@@ -261,5 +262,97 @@
             </div>
         </div>
     </div>
+</div>
+
+<script>
+function bookDetail() {
+    return {
+        loading: false,
+        wishlistAdded: false,
+
+        async borrowBook(bookId) {
+            if (!confirm('Do you want to borrow this book?')) return;
+            
+            this.loading = true;
+            try {
+                const response = await fetch('<?= site_url('api/borrowings/borrow') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ book_id: bookId }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Book borrowed successfully! You can view it in "My Borrowings".');
+                    window.location.href = '<?= site_url('member/borrowings') ?>';
+                } else {
+                    alert(data.message || 'Failed to borrow book. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while borrowing the book.');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async addToWishlist() {
+            try {
+                const response = await fetch('<?= site_url('api/wishlist/toggle') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ book_id: 1 }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    this.wishlistAdded = !this.wishlistAdded;
+                    const message = this.wishlistAdded ? 'Added to wishlist!' : 'Removed from wishlist';
+                    alert(message);
+                } else {
+                    alert(data.message || 'Failed to update wishlist.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while updating wishlist.');
+            }
+        },
+
+        async shareBook() {
+            const bookTitle = 'The Great Gatsby';
+            const bookUrl = window.location.href;
+            
+            // Try to use native Web Share API if available
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: bookTitle,
+                        text: `Check out "${bookTitle}" in the Library!`,
+                        url: bookUrl
+                    });
+                } catch (error) {
+                    console.log('Share cancelled or failed:', error);
+                }
+            } else {
+                // Fallback: Copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(bookUrl);
+                    alert('Book link copied to clipboard! Share it with friends.');
+                } catch (error) {
+                    alert('Book URL: ' + bookUrl);
+                }
+            }
+        }
+    }
+}
+</script>
 </div>
 <?= $this->endSection() ?>

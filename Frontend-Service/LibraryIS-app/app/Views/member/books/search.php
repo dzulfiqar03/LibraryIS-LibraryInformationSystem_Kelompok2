@@ -330,114 +330,146 @@ function searchBooks() {
         query: {
             search: '',
             category: '',
-            yearFrom: '',
-            yearTo: '',
             language: '',
-            availability: '',
-            rating: [],
-            format: [],
-            maxPrice: 100
+            page: 1
         },
-        sortBy: 'relevance',
-        loading: false,
         results: [],
-        
-        async searchBooks() {
+        pagination: { current_page: 1, total_pages: 1 },
+        loading: false,
+
+        init() {
+            this.loadBooks();  // Load books on page load
+        },
+
+        async loadBooks() {
             this.loading = true;
+            this.results = [];
+
             try {
-                const response = await fetch('<?= site_url('api/books/search') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(this.query),
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    this.results = data.books || [];
-                    console.log('Search results:', this.results);
-                } else {
-                    alert('Search failed: ' + (data.message || 'Unknown error'));
+                const token = '<?= session()->get('jwt_token') ?? '' ?>';
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
                 }
+
+                let url = '<?= site_url('api/books/') ?>';
+                let options = {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                };
+
+                // If there's any search input, use POST /search
+                if (this.query.search || this.query.category || this.query.language) {
+                    url = '<?= site_url('api/books/search') ?>';
+                    options.method = 'POST';
+                    options.body = JSON.stringify({
+                        search: this.query.search,
+                        category: this.query.category,
+                        language: this.query.language,
+                        page: this.query.page
+                    });
+                } else {
+                    // Add page param for GET
+                    url += '?page=' + this.query.page;
+                }
+
+                const response = await fetch(url, options);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                }
+
+                const data = await response.json();
+
+                this.results = data.books || data.data || [];
+                this.pagination = data.pagination || { current_page: 1, total_pages: 1 };
+
             } catch (error) {
-                console.error('Search error:', error);
-                alert('Error performing search');
+                console.error('Search/load error:', error);
+                alert('Search failed: ' + error.message);
+                this.results = [];
             } finally {
                 this.loading = false;
             }
         },
-        
-        resetFilters() {
-            this.query = {
-                search: '',
-                category: '',
-                yearFrom: '',
-                yearTo: '',
-                language: '',
-                availability: '',
-                rating: [],
-                format: [],
-                maxPrice: 100
-            };
-            this.sortBy = 'relevance';
-            this.results = [];
+
+        // Pagination
+        prevPage() {
+            if (this.query.page > 1) {
+                this.query.page--;
+                this.loadBooks();
+            }
         },
-        
-        applyFilters() {
-            this.searchBooks();
+        nextPage() {
+            if (this.query.page < this.pagination.total_pages) {
+                this.query.page++;
+                this.loadBooks();
+            }
         },
-        
+
         async borrowBook(bookId) {
             if (!confirm('Borrow this book?')) return;
-            
+
             try {
+                const token = '<?= session()->get('jwt_token') ?? '' ?>';
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
                 const response = await fetch('<?= site_url('api/borrowings/borrow') ?>', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        book_id: bookId
-                    }),
+                    headers: headers,
+                    body: JSON.stringify({ book_id: bookId }),
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
+
                 if (data.success) {
                     alert('Book borrowed successfully!');
-                    this.searchBooks();
+                    this.loadBooks();
                 } else {
-                    alert('Failed to borrow: ' + (data.message || 'Unknown error'));
+                    alert(data.message || 'Failed to borrow book');
                 }
             } catch (error) {
                 console.error('Borrow error:', error);
                 alert('Error borrowing book');
             }
         },
-        
+
         async reserveBook(bookId) {
             if (!confirm('Reserve this book?')) return;
-            
+
             try {
+                const token = '<?= session()->get('jwt_token') ?? '' ?>';
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
                 const response = await fetch('<?= site_url('api/borrowings/reserve') ?>', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        book_id: bookId
-                    }),
+                    headers: headers,
+                    body: JSON.stringify({ book_id: bookId }),
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
+
                 if (data.success) {
                     alert('Book reserved successfully!');
-                    this.searchBooks();
+                    this.loadBooks();
                 } else {
-                    alert('Failed to reserve: ' + (data.message || 'Unknown error'));
+                    alert(data.message || 'Failed to reserve book');
                 }
             } catch (error) {
                 console.error('Reserve error:', error);

@@ -3,6 +3,7 @@
 <?= $this->section('title') ?>Settings<?= $this->endSection() ?>
 
 <?= $this->section('page_content') ?>
+<div x-data="settingsManager()">
 <!-- Page Header -->
 <div class="mb-8">
     <h1 class="text-3xl font-display font-bold text-gray-900">Settings</h1>
@@ -22,8 +23,8 @@
                     <input 
                         type="checkbox" 
                         id="email_notifications" 
+                        x-model="settings.email_notifications"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
-                        checked
                     >
                 </div>
                 <div class="flex-1">
@@ -38,8 +39,8 @@
                     <input 
                         type="checkbox" 
                         id="reminder_notifications" 
+                        x-model="settings.reminder_notifications"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
-                        checked
                     >
                 </div>
                 <div class="flex-1">
@@ -54,6 +55,7 @@
                     <input 
                         type="checkbox" 
                         id="new_books_notifications" 
+                        x-model="settings.new_books_notifications"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
                     >
                 </div>
@@ -69,6 +71,7 @@
                     <input 
                         type="checkbox" 
                         id="newsletter" 
+                        x-model="settings.newsletter"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
                     >
                 </div>
@@ -91,8 +94,8 @@
                     <input 
                         type="checkbox" 
                         id="public_profile" 
+                        x-model="settings.public_profile"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
-                        checked
                     >
                 </div>
                 <div class="flex-1">
@@ -107,6 +110,7 @@
                     <input 
                         type="checkbox" 
                         id="show_history" 
+                        x-model="settings.show_history"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
                     >
                 </div>
@@ -122,8 +126,8 @@
                     <input 
                         type="checkbox" 
                         id="allow_messages" 
+                        x-model="settings.allow_messages"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
-                        checked
                     >
                 </div>
                 <div class="flex-1">
@@ -145,6 +149,7 @@
                     <input 
                         type="checkbox" 
                         id="dark_mode" 
+                        x-model="settings.dark_mode"
                         class="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
                     >
                 </div>
@@ -157,7 +162,7 @@
             <!-- Books per Page -->
             <div class="pt-4 border-t border-gray-200">
                 <label for="books_per_page" class="block font-medium text-gray-900 mb-2">Books Per Page</label>
-                <select id="books_per_page" class="input-field">
+                <select id="books_per_page" x-model="settings.books_per_page" class="input-field">
                     <option value="10">10 books</option>
                     <option value="20" selected>20 books</option>
                     <option value="50">50 books</option>
@@ -168,7 +173,7 @@
             <!-- Default View -->
             <div class="pt-4 border-t border-gray-200">
                 <label for="default_view" class="block font-medium text-gray-900 mb-2">Default Library View</label>
-                <select id="default_view" class="input-field">
+                <select id="default_view" x-model="settings.default_view" class="input-field">
                     <option value="grid" selected>Grid View</option>
                     <option value="list">List View</option>
                     <option value="table">Table View</option>
@@ -199,8 +204,8 @@
                     <p class="font-medium text-danger-600">Delete Account</p>
                     <p class="text-sm text-gray-600">Permanently delete your account and all data</p>
                 </div>
-                <button onclick="alert('Are you sure? This action cannot be undone.')" class="btn-danger">
-                    Delete
+                <button @click="deleteAccount()" :disabled="loading" class="btn-danger">
+                    <span x-text="loading ? 'Deleting...' : 'Delete'"></span>
                 </button>
             </div>
         </div>
@@ -208,12 +213,97 @@
 
     <!-- Save Settings Button -->
     <div class="flex gap-3">
-        <button class="btn-primary">
-            Save Settings
+        <button @click="saveSettings()" :disabled="loading" class="btn-primary">
+            <span x-text="loading ? 'Saving...' : 'Save Settings'"></span>
         </button>
         <a href="<?= site_url('member/dashboard') ?>" class="btn-secondary">
             Cancel
         </a>
     </div>
+</div>
+
+<script>
+function settingsManager() {
+    return {
+        loading: false,
+        settings: {
+            email_notifications: true,
+            reminder_notifications: true,
+            new_books_notifications: false,
+            newsletter: false,
+            public_profile: true,
+            show_history: false,
+            allow_messages: true,
+            dark_mode: false,
+            books_per_page: '20',
+            default_view: 'grid'
+        },
+
+        async saveSettings() {
+            this.loading = true;
+            try {
+                const response = await fetch('<?= site_url('api/settings/update') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(this.settings),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Settings saved successfully!');
+                } else {
+                    alert(data.message || 'Failed to save settings.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while saving settings.');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deleteAccount() {
+            const password = prompt('Enter your password to confirm account deletion:');
+            if (!password) return;
+
+            if (!confirm('Are you absolutely sure? This action CANNOT be undone. All your data will be permanently deleted.')) {
+                return;
+            }
+
+            this.loading = true;
+            try {
+                const response = await fetch('<?= site_url('api/account/delete') ?>', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ password: password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Account deleted successfully. You will be logged out.');
+                    setTimeout(() => {
+                        window.location.href = '<?= site_url('auth/logout') ?>';
+                    }, 1000);
+                } else {
+                    alert(data.message || 'Failed to delete account. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while deleting account.');
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>
 </div>
 <?= $this->endSection() ?>

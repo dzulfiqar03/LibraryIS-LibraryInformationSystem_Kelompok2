@@ -140,7 +140,14 @@ class ApiClient
     public function get(string $endpoint, array $params = []): ?array
     {
         try {
-            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            // Determine which service URL to use based on endpoint
+            $baseUrl = $this->graphqlUrl;
+            if (strpos($endpoint, '/api/') === 0) {
+                // Use book service URL for /api/ endpoints
+                $baseUrl = rtrim($this->bookServiceUrl, '/api/graphql');
+            }
+            
+            $url = $baseUrl . '/' . ltrim($endpoint, '/');
             if (!empty($params)) {
                 $url .= '?' . http_build_query($params);
             }
@@ -159,7 +166,14 @@ class ApiClient
     public function post(string $endpoint, array $data = []): ?array
     {
         try {
-            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            // Determine which service URL to use based on endpoint
+            $baseUrl = $this->graphqlUrl;
+            if (strpos($endpoint, '/api/') === 0) {
+                // Use book service URL for /api/ endpoints
+                $baseUrl = rtrim($this->bookServiceUrl, '/api/graphql');
+            }
+            
+            $url = $baseUrl . '/' . ltrim($endpoint, '/');
             $response = $this->curlPost($url, $data, $this->getHeaders());
             return $this->handleResponse($response);
         } catch (\Exception $e) {
@@ -174,7 +188,14 @@ class ApiClient
     public function put(string $endpoint, array $data = []): ?array
     {
         try {
-            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            // Determine which service URL to use based on endpoint
+            $baseUrl = $this->graphqlUrl;
+            if (strpos($endpoint, '/api/') === 0) {
+                // Use book service URL for /api/ endpoints
+                $baseUrl = rtrim($this->bookServiceUrl, '/api/graphql');
+            }
+            
+            $url = $baseUrl . '/' . ltrim($endpoint, '/');
             
             $ch = curl_init($url);
             
@@ -204,7 +225,14 @@ class ApiClient
     public function delete(string $endpoint): ?array
     {
         try {
-            $url = $this->graphqlUrl . '/' . ltrim($endpoint, '/');
+            // Determine which service URL to use based on endpoint
+            $baseUrl = $this->graphqlUrl;
+            if (strpos($endpoint, '/api/') === 0) {
+                // Use book service URL for /api/ endpoints
+                $baseUrl = rtrim($this->bookServiceUrl, '/api/graphql');
+            }
+            
+            $url = $baseUrl . '/' . ltrim($endpoint, '/');
             
             $ch = curl_init($url);
             
