@@ -37,6 +37,13 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
+     * The attributes that should be appended to JSON output.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['role'];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -67,5 +74,13 @@ class User extends Authenticatable implements JWTSubject
     public function user_detail()
     {
         return $this->hasOne(UserDetail::class, 'id_user', 'id');
+    }
+
+    /**
+     * Get the user's role via user_detail relationship
+     */
+    public function getRoleAttribute()
+    {
+        return $this->user_detail?->roles?->role ?? 'member';
     }
 }

@@ -31,7 +31,7 @@ class TransactionController extends Controller
         try {
             $transaction = $this->transactionService->createTransaction($request->validated());
 
-            
+
             return response()->json([
                 'message' => 'Transaksi berhasil dibuat',
                 'data' => $transaction
@@ -65,7 +65,10 @@ class TransactionController extends Controller
     public function update($id, TransactionRequest $request)
     {
         try {
-            $transaction = $this->transactionService->returnTransaction($id, $request->validated());
+            $validated = $request->validated();
+            $memberId = $validated['id_member'];
+
+            $transaction = $this->transactionService->returnTransaction($memberId, $validated);
 
             return response()->json([
                 'message' => 'Buku berhasil dikembalikan',

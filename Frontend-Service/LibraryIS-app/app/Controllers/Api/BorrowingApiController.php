@@ -19,10 +19,15 @@ class BorrowingApiController extends BaseController
      */
     public function borrow()
     {
-        if ($this->request->getMethod() !== 'post') {
+        // Debug logging
+        $method = strtolower($this->request->getMethod());
+        log_message('info', "Borrow request method: {$method}");
+        log_message('info', "Request URI: " . $this->request->getUri());
+        
+        if ($method !== 'post') {
             return $this->response->setStatusCode(405)->setJSON([
                 'success' => false,
-                'message' => 'Method not allowed'
+                'message' => 'Method not allowed - received: ' . $method . ' (expected: post)'
             ]);
         }
 
@@ -95,18 +100,23 @@ class BorrowingApiController extends BaseController
     /**
      * Return a book
      */
-    public function return()
+    public function returnBook()
     {
-        if ($this->request->getMethod() !== 'post') {
+        $method = strtolower($this->request->getMethod());
+        log_message('info', "Return book request method: {$method}");
+        log_message('info', "Return book URI: " . $this->request->getUri());
+        
+        if (strtolower($this->request->getMethod()) !== 'post') {
             return $this->response->setStatusCode(405)->setJSON([
                 'success' => false,
-                'message' => 'Method not allowed'
+                'message' => 'Method not allowed - expected POST, got: ' . $this->request->getMethod()
             ]);
         }
 
         try {
             $data = $this->request->getJSON();
             $borrowingId = $data->borrowing_id ?? null;
+            $bookId = $data->book_id ?? null;
 
             if (!$borrowingId) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -115,8 +125,8 @@ class BorrowingApiController extends BaseController
                 ]);
             }
 
-            // Call BorrowingService to return
-            $result = $this->borrowingService->return($borrowingId);
+            // Cast to integer and call BorrowingService to return
+            $result = $this->borrowingService->returnBook((int) $borrowingId, $bookId);
 
             return $this->response->setJSON([
                 'success' => true,
@@ -141,19 +151,123 @@ class BorrowingApiController extends BaseController
             $page = $this->request->getGet('page') ?? 1;
             $status = $this->request->getGet('status') ?? null;
 
+            log_message('info', "Loading borrowings - page: {$page}, status: " . ($status ?: 'all'));
+
             $results = $this->borrowingService->getBorrowings($page, 10, $status);
+            
+            log_message('info', "Raw getBorrowings result: " . json_encode($results));
+
+            $borrowings = $results['data'] ?? $results;
+            log_message('info', "Extracted borrowings: " . json_encode($borrowings));
 
             return $this->response->setJSON([
                 'success' => true,
-                'borrowings' => $results['data'] ?? $results,
-                'message' => 'Borrowings retrieved'
+                'borrowings' => $borrowings,
+                'message' => 'Borrowings retrieved',
+                'debug' => [
+                    'raw_results' => $results,
+                    'count' => is_array($borrowings) ? count($borrowings) : 0
+                ]
             ]);
         } catch (\Exception $e) {
             log_message('error', 'Get borrowings error: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Failed to get borrowings'
+                'message' => 'Failed to get borrowings: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Renew a borrowing
+     */
+    public function renew()
+    {
+        $method = strtolower($this->request->getMethod());
+        log_message('info', "Renew book request method: {$method}");
+        log_message('info', "Renew book URI: " . $this->request->getUri());
+        
+        if (strtolower($this->request->getMethod()) !== 'post') {
+            return $this->response->setStatusCode(405)->setJSON([
+                'success' => false,
+                'message' => 'Method not allowed - expected POST, got: ' . $this->request->getMethod()
+            ]);
+        }
+
+        try {
+            $data = $this->request->getJSON();
+            $borrowingId = $data->borrowing_id ?? null;
+
+            if (!$borrowingId) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Borrowing ID is required'
+                ]);
+            }
+
+            $result = $this->borrowingService->renew((int) $borrowingId);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'borrowing' => $result,
+                'message' => 'Book renewed successfully'
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Renew book error: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to renew book'
+            ]);
+        }
+    }
+
+    /**
+     * Get member stats
+     */
+    public function memberStats()
+    {
+        try {
+            $stats = $this->borrowingService->getMemberStats();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'stats' => $stats,
+                'message' => 'Member stats retrieved'
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Get member stats error: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to get member stats',
+                'stats' => [
+                    'active_borrowings' => 0,
+                    'overdue_books' => 0,
+                    'total_read' => 0
+                ]
+            ]);
+        }
+    }
+    
+    /**
+     * Debug test endpoint
+     */
+    public function debugTest()
+    {
+        $method = $this->request->getMethod();
+        $headers = $this->request->getHeaders();
+        $body = $this->request->getBody();
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'method' => $method,
+            'uri' => (string) $this->request->getUri(),
+            'headers' => array_map(function($header) { return $header->getValue(); }, $headers),
+            'body' => $body,
+            'session_data' => [
+                'has_jwt' => session()->has('jwt_token'),
+                'has_user' => session()->has('user'),
+                'is_logged_in' => session()->has('isLoggedIn')
+            ]
+        ]);
     }
 }

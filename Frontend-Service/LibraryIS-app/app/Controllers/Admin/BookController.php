@@ -160,7 +160,7 @@ class BookController extends BaseController
     public function delete($bookId)
     {
         try {
-            if ($this->request->getMethod() === 'post') {
+            if (strtolower($this->request->getMethod()) === 'post') {
                 $response = $this->bookService->deleteBook($bookId);
 
                 if ($response) {

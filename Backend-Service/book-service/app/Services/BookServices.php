@@ -29,34 +29,42 @@ class BookServices
     {
         return DB::transaction(function () use ($data) {
 
-            $book = $this->book->create($data);
+            $book = $this->book->create(['title' => $data['title']]);
 
             if (request()->is('graphql')) {
                 if (!empty($data['detail'])) {
                     $book->book_detail()->create([
-                        'authors'   => $data['detail']['authors'] ?? null,
-                        'languages' => $data['detail']['languages'] ?? null,
-                        'url_cover' => $data['detail']['url_cover'] ?? null,
-                        'url_ebook' => $data['detail']['url_ebook'] ?? null,
-                        'status'    => $data['detail']['status'] ?? null,
+                        'authors'           => $data['detail']['authors'] ?? null,
+                        'isbn'              => $data['detail']['isbn'] ?? null,
+                        'publisher'         => $data['detail']['publisher'] ?? null,
+                        'publication_year'  => $data['detail']['publication_year'] ?? null,
+                        'category'          => $data['detail']['category'] ?? 'uncategorized',
+                        'description'       => $data['detail']['description'] ?? null,
+                        'pages'             => $data['detail']['pages'] ?? null,
+                        'quantity'          => $data['detail']['quantity'] ?? 1,
+                        'languages'         => $data['detail']['languages'] ?? null,
+                        'url_cover'         => $data['detail']['url_cover'] ?? null,
+                        'url_ebook'         => $data['detail']['url_ebook'] ?? null,
+                        'status'            => $data['detail']['status'] ?? 'available',
                     ]);
                 }
             } else {
-                if (
-                    isset($data['authors']) ||
-                    isset($data['languages']) ||
-                    isset($data['status'])
-                ) {
-                    $book->book_detail()->create([
-                        'authors'   => $data['authors'] ?? null,
-                        'languages' => $data['languages'] ?? null,
-                        'url_cover' => $data['url_cover'] ?? null,
-                        'url_ebook' => $data['url_ebook'] ?? null,
-                        'status'    => $data['status'] ?? null,
-                    ]);
-                }
+                // For REST API calls
+                $book->book_detail()->create([
+                    'authors'           => $data['authors'] ?? null,
+                    'isbn'              => $data['isbn'] ?? null,
+                    'publisher'         => $data['publisher'] ?? null,
+                    'publication_year'  => $data['publication_year'] ?? null,
+                    'category'          => $data['category'] ?? 'uncategorized',
+                    'description'       => $data['description'] ?? null,
+                    'pages'             => $data['pages'] ?? null,
+                    'quantity'          => $data['quantity'] ?? 1,
+                    'languages'         => $data['languages'] ?? null,
+                    'url_cover'         => $data['url_cover'] ?? null,
+                    'url_ebook'         => $data['url_ebook'] ?? null,
+                    'status'            => $data['status'] ?? 'available',
+                ]);
             }
-
 
             return $book->load('book_detail');
         });
@@ -67,32 +75,47 @@ class BookServices
         return DB::transaction(function () use ($id, $data) {
 
             $book = $this->book->findOrFail($id);
-            $book->update($data);
+            $book->update(['title' => $data['title']]);
 
             if (request()->is('graphql')) {
                 if (!empty($data['detail'])) {
-                    $book->book_detail()->update([
-                        'authors'   => $data['detail']['authors'] ?? null,
-                        'languages' => $data['detail']['languages'] ?? null,
-                        'url_cover' => $data['detail']['url_cover'] ?? null,
-                        'url_ebook' => $data['detail']['url_ebook'] ?? null,
-                        'status'    => $data['detail']['status'] ?? null,
-                    ]);
+                    $book->book_detail()->updateOrCreate(
+                        ['id_book' => $book->id],
+                        [
+                            'authors'           => $data['detail']['authors'] ?? null,
+                            'isbn'              => $data['detail']['isbn'] ?? null,
+                            'publisher'         => $data['detail']['publisher'] ?? null,
+                            'publication_year'  => $data['detail']['publication_year'] ?? null,
+                            'category'          => $data['detail']['category'] ?? 'uncategorized',
+                            'description'       => $data['detail']['description'] ?? null,
+                            'pages'             => $data['detail']['pages'] ?? null,
+                            'quantity'          => $data['detail']['quantity'] ?? 1,
+                            'languages'         => $data['detail']['languages'] ?? null,
+                            'url_cover'         => $data['detail']['url_cover'] ?? null,
+                            'url_ebook'         => $data['detail']['url_ebook'] ?? null,
+                            'status'            => $data['detail']['status'] ?? 'available',
+                        ]
+                    );
                 }
             } else {
-                if (
-                    isset($data['authors']) ||
-                    isset($data['languages']) ||
-                    isset($data['status'])
-                ) {
-                    $book->book_detail()->update([
-                        'authors'   => $data['authors'] ?? null,
-                        'languages' => $data['languages'] ?? null,
-                        'url_cover' => $data['url_cover'] ?? null,
-                        'url_ebook' => $data['url_ebook'] ?? null,
-                        'status'    => $data['status'] ?? null,
-                    ]);
-                }
+                // For REST API calls
+                $book->book_detail()->updateOrCreate(
+                    ['id_book' => $book->id],
+                    [
+                        'authors'           => $data['authors'] ?? null,
+                        'isbn'              => $data['isbn'] ?? null,
+                        'publisher'         => $data['publisher'] ?? null,
+                        'publication_year'  => $data['publication_year'] ?? null,
+                        'category'          => $data['category'] ?? 'uncategorized',
+                        'description'       => $data['description'] ?? null,
+                        'pages'             => $data['pages'] ?? null,
+                        'quantity'          => $data['quantity'] ?? 1,
+                        'languages'         => $data['languages'] ?? null,
+                        'url_cover'         => $data['url_cover'] ?? null,
+                        'url_ebook'         => $data['url_ebook'] ?? null,
+                        'status'            => $data['status'] ?? 'available',
+                    ]
+                );
             }
 
             return $book->load('book_detail');
@@ -102,16 +125,15 @@ class BookServices
     public function deleteBook($id)
     {
         return DB::transaction(function () use ($id) {
+            $book = $this->book->findOrFail($id);
 
-            $this->book->where('id', $id)->delete();
+            // Delete related book_detail first (cascade should handle this, but being explicit)
+            $book->book_detail()->delete();
 
-            if (
-                isset($data['authors']) ||
-                isset($data['languages']) ||
-                isset($data['status'])
-            ) {
-                $this->book->book_detail()->where('id_book', $id)->delete();
-            }
+            // Delete the book
+            $book->delete();
+
+            return true;
         });
     }
 }

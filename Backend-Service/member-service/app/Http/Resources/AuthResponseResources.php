@@ -21,9 +21,9 @@ class AuthResponseResources extends JsonResource
                 'code' => 200,
                 'message' => $this->resource['status'] === 'error' ? 'Validasi Gagal' : ($this->resource['status'] === 'Login Berhasil' || $this->resource['status'] !== 'Email Salah' || $this->resource['status'] !== 'Password Salah' ? 'User Berhasil Login' : 'User Not Found'),
                  'data' => [
-                    'user' => auth()->user() ?? null,
+                    'user' => $this->resource['user'] ?? auth()->user(),
                     'access_token' => [
-                        'token' => $this['token'],
+                        'token' => $this->resource['token'] ?? null,
                         'type' => 'Bearer',
                         'expires_in' => auth()->factory()->getTTL() * 60,
                     ] ?? null,
@@ -33,9 +33,9 @@ class AuthResponseResources extends JsonResource
                 'message' => $this->resource['status'] === 'error' ? 'Validasi Gagal' : ($this->resource['status'] === 'Register Berhasil' ? 'User created successfully!' : 'User Not Created'),
                 // ⬇️ DATA UTAMA
                 'data' => [
-                    'user' => auth()->user() ?? null,
+                    'user' => $this->resource['user'] ?? auth()->user(),
                     'access_token' => [
-                        'token' => $this['token'],
+                        'token' => $this->resource['token'] ?? null,
                         'type' => 'Bearer',
                         'expires_in' => auth()->factory()->getTTL() * 60,
                     ] ?? null,

@@ -19,6 +19,37 @@ $routes->group('auth', static function ($routes) {
     $routes->post('reset-password', 'Auth\AuthController::processResetPassword');
 });
 
+// API routes for AJAX calls (Protected)
+$routes->group('api', ['filter' => 'auth'], static function ($routes) {
+    // Books API
+    $routes->get('books', 'Api\BookApiController::index');
+    $routes->post('books/search', 'Api\BookApiController::search');
+    $routes->get('books/(:num)', 'Api\BookApiController::detail/$1');
+    
+    // Borrowing API
+    $routes->get('borrowings', 'Api\BorrowingApiController::index');
+    $routes->post('borrowings/borrow', 'Api\BorrowingApiController::borrow');
+    $routes->post('borrowings/reserve', 'Api\BorrowingApiController::reserve');
+    $routes->post('borrowings/return', 'Api\BorrowingApiController::returnBook');
+    $routes->post('borrowings/renew', 'Api\BorrowingApiController::renew');
+    
+    // Debug endpoint (remove this later)
+    $routes->match(['get', 'post'], 'debug/test', 'Api\BorrowingApiController::debugTest');
+    
+    // Member stats API - moved after borrowings to avoid conflicts
+    $routes->get('member/stats', 'Api\BorrowingApiController::memberStats');
+
+    // Wishlist API
+    $routes->get('wishlist', 'Api\WishlistApiController::index');
+    $routes->post('wishlist/toggle', 'Api\WishlistApiController::toggle');
+
+    // Settings API
+    $routes->post('settings/update', 'Api\SettingsApiController::update');
+
+    // Account API
+    $routes->delete('account/delete', 'Api\AccountApiController::delete');
+});
+
 // Member routes (Protected)
 $routes->group('member', ['filter' => 'auth'], static function ($routes) {
     $routes->get('dashboard', 'Member\DashboardController::index');
@@ -26,7 +57,7 @@ $routes->group('member', ['filter' => 'auth'], static function ($routes) {
     // Books routes
     $routes->group('books', static function ($routes) {
         $routes->get('search', 'Member\BookController::search');
-        $routes->get('(:num)', 'Member\BookController::detail/$1');
+        $routes->get('detail/(:num)', 'Member\BookController::detail/$1');
         $routes->get('recommendations', 'Member\BookController::recommendations');
     });
     
@@ -44,6 +75,14 @@ $routes->group('member', ['filter' => 'auth'], static function ($routes) {
     $routes->put('profile', 'Member\ProfileController::update');
     $routes->get('settings', 'Member\ProfileController::settings');
     $routes->put('settings', 'Member\ProfileController::updateSettings');
+});
+
+// Fines and Recommendations routes (Protected)
+$routes->group('fines-recommendations', ['filter' => 'auth'], static function ($routes) {
+    $routes->get('/', 'FinesRecommendationsController::index');
+    $routes->post('pay-fine', 'FinesRecommendationsController::payFine');
+    $routes->post('generate-recommendations', 'FinesRecommendationsController::generateRecommendations');
+    $routes->post('mark-viewed', 'FinesRecommendationsController::markRecommendationViewed');
 });
 
 // Admin routes (Protected)
@@ -100,39 +139,11 @@ $routes->group('librarian', ['filter' => 'auth'], static function ($routes) {
     $routes->get('reports', 'Librarian\ReportController::index');
 });
 
-// API routes (Protected)
-$routes->group('api', ['filter' => 'auth'], static function ($routes) {
-    // Book API
-    $routes->group('books', static function ($routes) {
-        $routes->get('/', 'Api\BookApiController::index');
-        $routes->post('search', 'Api\BookApiController::search');
-        $routes->get('(:num)', 'Api\BookApiController::detail/$1');
-    });
-    
-    // Borrowing API
-    $routes->group('borrowings', static function ($routes) {
-        $routes->get('/', 'Api\BorrowingApiController::index');
-        $routes->post('borrow', 'Api\BorrowingApiController::borrow');
-        $routes->post('reserve', 'Api\BorrowingApiController::reserve');
-        $routes->post('return', 'Api\BorrowingApiController::return');
-    });
-
-    // Wishlist API
-    $routes->group('wishlist', static function ($routes) {
-        $routes->get('/', 'Api\WishlistApiController::index');
-        $routes->post('toggle', 'Api\WishlistApiController::toggle');
-    });
-
-    // Settings API
-    $routes->group('settings', static function ($routes) {
-        $routes->post('update', 'Api\SettingsApiController::update');
-    });
-
-    // Account API
-    $routes->group('account', static function ($routes) {
-        $routes->delete('delete', 'Api\AccountApiController::delete');
-    });
-});
-
 // Fallback route
 $routes->get('/', 'Home::index');
+
+// Debug routes
+$routes->get('debug/book-api', 'DebugController::testBookApi', ['filter' => 'auth']);
+$routes->get('test/books', 'TestBookController::testBooks'); // No auth for testing
+$routes->get('test/auth', 'AuthTestController::testWithAuth'); // Test auth simulation
+$routes->get('test/login', 'AuthTestController::loginTest'); // Test session setup

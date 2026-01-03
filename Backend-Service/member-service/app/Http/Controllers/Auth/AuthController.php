@@ -71,11 +71,14 @@ class AuthController extends Controller
             ]);
         }
 
+        // Load the user with relationships to get role information
+        $user = auth()->user()->load('user_detail.roles');
+
         return new AuthResponseResources([
             'auth' => 'Login',
             'token' => $token,
             'status' => 'Login Berhasil',
-
+            'user' => $user,
         ]);
     }
 

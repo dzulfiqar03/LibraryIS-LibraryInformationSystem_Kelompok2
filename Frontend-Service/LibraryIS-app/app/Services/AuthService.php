@@ -56,6 +56,7 @@ class AuthService
             return ['success' => false, 'message' => 'No response from server. Is Member Service running on port 8001?'];
         }
 
+        // Note: Member Service returns 422 even for successful logins, so check response content
         try {
             $data = json_decode($response, true);
             

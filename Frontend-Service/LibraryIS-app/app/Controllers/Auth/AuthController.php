@@ -55,17 +55,28 @@ class AuthController extends BaseController
                 ->with('error', $errorMessage);
         }
 
-        // Store user data in session
+        // Store user data and JWT token in session
         $userData = $loginResult['user'] ?? [];
+        $jwtToken = $loginResult['token'] ?? null;
+        
         session()->set('user', $userData);
         session()->set('isLoggedIn', true);
+        session()->set('jwt_token', $jwtToken);
 
         // Set remember me if checked
         if ($remember) {
             session()->set('remember_me', true);
         }
 
-        return redirect()->to('/member/dashboard')
+        // Redirect based on user role
+        $userRole = $userData['role'] ?? 'member';
+        $redirectPath = match($userRole) {
+            'admin' => '/admin/dashboard',
+            'librarian' => '/librarian/dashboard',
+            default => '/member/dashboard'
+        };
+
+        return redirect()->to($redirectPath)
             ->with('success', 'Login successful!');
     }
 

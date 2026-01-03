@@ -79,6 +79,8 @@ class BookApiController extends BaseController
     public function index()
     {
         try {
+            log_message('info', 'BookApiController: Starting book retrieval');
+            
             $filters = [
                 'search' => $this->request->getGet('search') ?? '',
                 'category' => $this->request->getGet('category') ?? '',
@@ -86,18 +88,45 @@ class BookApiController extends BaseController
             ];
             $page = $this->request->getGet('page') ?? 1;
 
+            log_message('info', 'BookApiController: Filters: ' . json_encode($filters));
+            log_message('info', 'BookApiController: Current session: ' . json_encode(session()->get()));
+
             $results = $this->bookService->getAllBooks($filters, $page, 12);
+            
+            // Handle null response from service
+            if ($results === null) {
+                log_message('error', 'BookApiController: Service returned null');
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to retrieve books from service',
+                    'debug' => [
+                        'service_response' => 'null',
+                        'session_token' => session()->get('jwt_token') ? 'present' : 'missing'
+                    ]
+                ]);
+            }
+
+            log_message('info', 'BookApiController: Successfully retrieved ' . count($results) . ' books');
 
             return $this->response->setJSON([
                 'success' => true,
-                'books' => $results['data'] ?? $results,
-                'message' => 'Books retrieved'
+                'books' => $results,
+                'message' => 'Books retrieved successfully',
+                'debug' => [
+                    'count' => count($results),
+                    'filters' => $filters
+                ]
             ]);
         } catch (\Exception $e) {
             log_message('error', 'Get books error: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Failed to get books'
+                'message' => 'Failed to get books: ' . $e->getMessage(),
+                'debug' => [
+                    'exception' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile()
+                ]
             ]);
         }
     }

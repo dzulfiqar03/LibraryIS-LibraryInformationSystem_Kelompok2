@@ -10,6 +10,8 @@ use App\Jobs\Publish\TransactionJob;
 use App\Models\Book;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Services\MemberService;
+use App\Services\BookService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Queue;
@@ -19,8 +21,10 @@ class TransactionService
     protected $memberService;
     protected $bookService;
 
-    public function __construct(
-    ) {
+    public function __construct()
+    {
+        $this->memberService = new MemberService();
+        $this->bookService = new BookService();
     }
 
       public function getAll()
@@ -40,6 +44,8 @@ class TransactionService
         $transaction = Transaction::create([
             'id_member' => $data['id_member'],
             'transaction_date' => now(),
+            'due_date' => now()->addDays(14), // Set due date to 2 weeks from now
+            'status' => 'borrowed'
         ]);
 
         foreach ($books as $book) {
@@ -65,11 +71,33 @@ class TransactionService
     {
         $bookIds = collect($data['books'])->pluck('id_book')->toArray();
 
+        // Debug logging
+        \Log::info("Return transaction attempt", [
+            'member_id' => $memberId,
+            'book_ids' => $bookIds,
+            'data' => $data
+        ]);
+
+        // Check if member has any transactions at all
+        $allTransactions = Transaction::where('id_member', $memberId)->get();
+        \Log::info("All transactions for member {$memberId}", ['count' => $allTransactions->count()]);
+
+        // Check if member has any borrowed transactions
+        $borrowedTransactions = Transaction::where('id_member', $memberId)
+            ->where('status', 'borrowed')
+            ->whereNull('return_date')
+            ->get();
+        \Log::info("Borrowed transactions for member {$memberId}", ['count' => $borrowedTransactions->count()]);
+
         $transactions = Transaction::where('id_member', $memberId)
+            ->where('status', 'borrowed') // Only look for active borrowed transactions
+            ->whereNull('return_date') // Only transactions that haven't been returned yet
             ->whereHas('transaction_details', function ($query) use ($bookIds) {
                 $query->whereIn('id_book', $bookIds);
             })
             ->get();
+
+        \Log::info("Matching transactions found", ['count' => $transactions->count()]);
 
         if ($transactions->isEmpty()) {
             throw new \Exception("No borrowed transactions found for this member with given books.");
@@ -124,7 +152,7 @@ class TransactionService
     {
         $transaction = Transaction::with('transaction_details')->findOrFail($transactionId);
 
- 
+
 
         return $transaction;
     }

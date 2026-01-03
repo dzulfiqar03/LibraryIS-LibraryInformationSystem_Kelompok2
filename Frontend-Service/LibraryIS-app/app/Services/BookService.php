@@ -6,7 +6,7 @@ use CodeIgniter\HTTP\CURLRequest;
 
 class BookService
 {
-    protected string $baseUrl = 'http://127.0.0.1:8000/api/';  // Adjust if needed from .env
+    protected string $baseUrl = 'http://127.0.0.1:8002/api/';  // BookService port
     protected CURLRequest $client;
 
     public function __construct()
@@ -17,11 +17,16 @@ class BookService
     private function getHeaders(): array
     {
         $token = session()->get('jwt_token');
-        return [
-            'Authorization' => $token ? 'Bearer ' . $token : '',
+        $headers = [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json'
         ];
+        
+        if ($token) {
+            $headers['Authorization'] = 'Bearer ' . $token;
+        }
+        
+        return $headers;
     }
 
     /**
@@ -30,23 +35,34 @@ class BookService
     public function getAllBooks(array $filters = [], int $page = 1, int $perPage = 12): ?array
     {
         try {
-            $response = $this->client->get($this->baseUrl . 'allBook', [
+            log_message('info', 'Calling Book Service at: ' . $this->baseUrl . 'allBook');
+            log_message('info', 'With headers: ' . json_encode($this->getHeaders()));
+            
+            $response = $this->client->get($this->baseUrl . 'temp/allBook', [
                 'headers' => $this->getHeaders(),
                 'query' => array_merge([
                     'page' => $page,
-                    'per_page' => $perPage  // Adjust if backend uses 'per_page'
+                    'per_page' => $perPage
                 ], $filters)
             ]);
 
+            log_message('info', 'Book Service response status: ' . $response->getStatusCode());
+            log_message('info', 'Book Service response body: ' . $response->getBody());
+
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody(), true);
-                return $data['data'] ?? $data ?? [];
+                $books = $data['data'] ?? $data ?? [];
+                
+                // Map backend structure to frontend expected structure
+                return array_map(function($book) {
+                    return $this->mapBookData($book);
+                }, $books);
             }
 
-            throw new \Exception('Failed to fetch books. Status: ' . $response->getStatusCode());
+            throw new \Exception('Failed to fetch books. Status: ' . $response->getStatusCode() . ', Body: ' . $response->getBody());
         } catch (\Exception $e) {
             log_message('error', 'Get all books error: ' . $e->getMessage());
-            return null;
+            throw $e; // Re-throw to let controller handle
         }
     }
 
@@ -93,7 +109,12 @@ class BookService
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody(), true);
-                return $data['data'] ?? $data ?? null;
+                $book = $data['data'] ?? $data ?? null;
+                
+                if ($book) {
+                    return $this->mapBookData($book);
+                }
+                return null;
             }
 
             throw new \Exception('Book not found. Status: ' . $response->getStatusCode());
@@ -150,14 +171,18 @@ class BookService
     public function createBook(array $data): ?array
     {
         try {
-            $response = $this->client->post($this->baseUrl . 'Book/store', [
+            // Map frontend data to backend expected format
+            $backendData = $this->mapToBackendFormat($data);
+            
+            $response = $this->client->post($this->baseUrl . 'Book/store/', [
                 'headers' => $this->getHeaders(),
-                'json' => $data
+                'json' => $backendData
             ]);
 
             if ($response->getStatusCode() === 200 || $response->getStatusCode() === 201) {
                 $result = json_decode($response->getBody(), true);
-                return $result['data'] ?? $result ?? [];
+                $book = $result['data'] ?? $result ?? [];
+                return $book ? $this->mapBookData($book) : $book;
             }
 
             throw new \Exception('Failed to create book. Status: ' . $response->getStatusCode());
@@ -173,14 +198,18 @@ class BookService
     public function updateBook(int $bookId, array $data): ?array
     {
         try {
+            // Map frontend data to backend expected format
+            $backendData = $this->mapToBackendFormat($data);
+            
             $response = $this->client->put($this->baseUrl . "Book/update/{$bookId}", [
                 'headers' => $this->getHeaders(),
-                'json' => $data
+                'json' => $backendData
             ]);
 
             if ($response->getStatusCode() === 200) {
                 $result = json_decode($response->getBody(), true);
-                return $result['data'] ?? $result ?? [];
+                $book = $result['data'] ?? $result ?? [];
+                return $book ? $this->mapBookData($book) : $book;
             }
 
             throw new \Exception('Failed to update book. Status: ' . $response->getStatusCode());
@@ -193,27 +222,87 @@ class BookService
     /**
      * Delete book (Admin only)
      */
-    public function deleteBook(int $bookId): ?array
+    public function deleteBook(int $bookId): bool
     {
         try {
             $response = $this->client->delete($this->baseUrl . "Book/delete/{$bookId}", [
                 'headers' => $this->getHeaders()
             ]);
 
-            if ($response->getStatusCode() === 200 || $response->getStatusCode() === 204) {
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode === 200 || $statusCode === 204) {
                 $result = json_decode($response->getBody(), true);
-                return $result['data'] ?? $result ?? [];
+                
+                // For delete operations, check the message instead of data
+                if (isset($result['message']) && strpos($result['message'], 'berhasil') !== false) {
+                    return true;
+                }
+                
+                // If no message, but successful status code, still return true
+                return true;
             }
 
-            throw new \Exception('Failed to delete book. Status: ' . $response->getStatusCode());
+            throw new \Exception('Failed to delete book. Status: ' . $statusCode);
         } catch (\Exception $e) {
             log_message('error', 'Delete book error: ' . $e->getMessage());
-            return null;
+            return false;
         }
     }
 
     // Backward compatibility
     public function create(array $data): ?array { return $this->createBook($data); }
     public function update(int $bookId, array $data): ?array { return $this->updateBook($bookId, $data); }
-    public function delete(int $bookId): ?array { return $this->deleteBook($bookId); }
+    public function delete(int $bookId): bool { return $this->deleteBook($bookId); }
+
+    /**
+     * Map backend book data structure to frontend expected format
+     */
+    private function mapBookData(array $book): array
+    {
+        $bookDetail = $book['book_detail'] ?? [];
+        
+        return [
+            'id' => $book['id'] ?? 0,
+            'title' => $book['title'] ?? '',
+            'author' => $bookDetail['authors'] ?? 'Unknown Author',
+            'authors' => $bookDetail['authors'] ?? '',
+            'isbn' => $bookDetail['isbn'] ?? '',
+            'publisher' => $bookDetail['publisher'] ?? '',
+            'publication_year' => $bookDetail['publication_year'] ?? '',
+            'category' => $bookDetail['category'] ?? 'uncategorized',
+            'description' => $bookDetail['description'] ?? '',
+            'pages' => (int)($bookDetail['pages'] ?? 0),
+            'language' => $bookDetail['languages'] ?? 'en',
+            'languages' => $bookDetail['languages'] ?? '',
+            'quantity' => (int)($bookDetail['quantity'] ?? 1),
+            'status' => $bookDetail['status'] ?? 'available',
+            'url_cover' => $bookDetail['url_cover'] ?? '',
+            'url_ebook' => $bookDetail['url_ebook'] ?? '',
+            'created_at' => $book['created_at'] ?? '',
+            'updated_at' => $book['updated_at'] ?? ''
+        ];
+    }
+
+    /**
+     * Map frontend form data to backend expected format
+     */
+    private function mapToBackendFormat(array $data): array
+    {
+        return [
+            'title'            => $data['title'] ?? '',
+            'authors'          => $data['author'] ?? $data['authors'] ?? '',
+            'isbn'             => $data['isbn'] ?? '',
+            'publisher'        => $data['publisher'] ?? '',
+            'publication_year' => $data['publication_year'] ? (int)$data['publication_year'] : null,
+            'category'         => $data['category'] ?? 'uncategorized',
+            'description'      => $data['description'] ?? '',
+            'pages'            => $data['pages'] ? (int)$data['pages'] : null,
+            'quantity'         => $data['quantity'] ? (int)$data['quantity'] : 1,
+            'languages'        => $data['language'] ?? $data['languages'] ?? 'en',
+            'url_cover'        => $data['url_cover'] ?? '',
+            'url_ebook'        => $data['url_ebook'] ?? '',
+            'status'           => $data['status'] ?? 'available'
+        ];
+    }
 }

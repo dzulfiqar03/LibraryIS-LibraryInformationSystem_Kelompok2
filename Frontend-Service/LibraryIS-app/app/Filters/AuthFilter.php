@@ -21,7 +21,18 @@ class AuthFilter implements FilterInterface
     {
         // Check if user has JWT token in session
         if (!session()->has('jwt_token') || !session()->has('user')) {
-            // Redirect to login page
+            // Check if this is an API request
+            $uri = $request->getUri()->getPath();
+            if (strpos($uri, '/api/') !== false || $request->hasHeader('X-Requested-With')) {
+                // Return JSON error response for API requests
+                return response()->setJSON([
+                    'success' => false,
+                    'message' => 'Authentication required. Please log in to access this endpoint.',
+                    'code' => 401
+                ])->setStatusCode(401);
+            }
+            
+            // Redirect to login page for regular requests
             return redirect()->to('/auth/login')->with('error', 'You must be logged in to access this page');
         }
     }

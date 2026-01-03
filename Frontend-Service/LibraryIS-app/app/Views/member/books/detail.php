@@ -18,29 +18,48 @@
     <!-- Book Cover & Actions -->
     <div>
         <div class="bg-gradient-to-br from-primary-100 to-secondary-100 rounded-lg h-80 flex items-center justify-center mb-6 sticky top-4">
-            <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
-            </svg>
-        </div>
+                <?php if (!empty($book['url_cover'])): ?>
+                    <img src="<?= esc($book['url_cover']) ?>" alt="<?= esc($book['title'] ?? 'Book Cover') ?>" class="w-full h-full object-cover rounded-lg">
+                <?php else: ?>
+                    <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
+                    </svg>
+                <?php endif; ?>
+            </div>
 
-        <div class="space-y-3">
-            <button @click="borrowBook(1)" :disabled="loading" class="btn-primary w-full">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                <span x-text="loading ? 'Loading...' : 'Borrow This Book'"></span>
-            </button>
-            <button @click="addToWishlist()" class="btn-secondary w-full">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path>
-                </svg>
-                Add to Wishlist
-            </button>
+            <div class="space-y-3">
+                <?php if (($book['quantity'] ?? 0) > 0): ?>
+                    <button @click="borrowBook(<?= $book['id'] ?? 0 ?>)" :disabled="loading" class="btn-primary w-full">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span x-text="loading ? 'Loading...' : 'Borrow This Book'"></span>
+                    </button>
+                <?php else: ?>
+                    <button class="btn-secondary w-full opacity-50 cursor-not-allowed" disabled>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Not Available
+                    </button>
+                <?php endif; ?>
+                
+                <button @click="addToWishlist()" class="btn-outline w-full">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    Add to Wishlist
+                </button>
             <button @click="shareBook()" class="btn-outline w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.922 10.938 12.114 9 14.5 9c.658 0 1.297.098 1.9.28m-1.646 2.645L12 13m-4.223 1.77c-.693.692-1.18 1.55-1.327 2.53m4.368-8.076A10 10 0 1 1 5 12a9.994 9.994 0 015.922 1.756z"></path>
                 </svg>
                 Share
+            </button>
+            
+            <!-- Debug Button -->
+            <button @click="debugTest()" class="btn-outline w-full bg-red-100 text-red-700 border-red-300">
+                🔧 Debug API Test
             </button>
         </div>
     </div>
@@ -49,79 +68,109 @@
     <div class="lg:col-span-2">
         <!-- Status -->
         <div class="flex items-center gap-2 mb-4">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success-100 text-success-700">
-                Available (2 copies)
-            </span>
-        </div>
-
-        <!-- Title & Author -->
-        <h1 class="text-4xl font-display font-bold text-gray-900 mb-2">The Great Gatsby</h1>
-        <p class="text-xl text-gray-600 mb-6">by F. Scott Fitzgerald</p>
-
-        <!-- Rating -->
-        <div class="flex items-center gap-4 mb-6">
-            <div class="flex gap-1">
-                <?php for ($i = 0; $i < 5; $i++): ?>
-                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
-                <?php endfor; ?>
+                <?php if (($book['quantity'] ?? 0) > 0): ?>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success-100 text-success-700">
+                        Available (<?= ($book['quantity'] ?? 0) ?> copies)
+                    </span>
+                <?php else: ?>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-danger-100 text-danger-700">
+                        Not Available
+                    </span>
+                <?php endif; ?>
             </div>
-            <span class="text-gray-600">4.8 out of 5 (248 reviews)</span>
-        </div>
+
+            <!-- Title & Author -->
+            <h1 class="text-4xl font-display font-bold text-gray-900 mb-2"><?= esc($book['title'] ?? 'Unknown Title') ?></h1>
+            <p class="text-xl text-gray-600 mb-6">by <?= esc($book['author'] ?? 'Unknown Author') ?></p>
+            
+            <!-- Rating -->
+            <div class="flex items-center gap-3 mb-6">
+                <div class="flex items-center">
+                    <?php for ($i = 0; $i < 5; $i++): ?>
+                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    <?php endfor; ?>
+                </div>
+                <span class="text-gray-600">4.8 out of 5 (248 reviews)</span>
+            </div>
 
         <!-- Book Details Table -->
         <div class="card mb-8">
             <div class="space-y-4">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Author</span>
-                    <span class="font-medium text-gray-900">F. Scott Fitzgerald</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['author'] ?? 'Unknown Author') ?></span>
                 </div>
+                <?php if (!empty($book['publication_year'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">Published</span>
-                    <span class="font-medium text-gray-900">April 10, 1925</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['publication_year']) ?></span>
                 </div>
+                <?php endif; ?>
+                <?php if (!empty($book['publisher'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">Publisher</span>
-                    <span class="font-medium text-gray-900">Scribner</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['publisher']) ?></span>
                 </div>
+                <?php endif; ?>
+                <?php if (!empty($book['pages'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">Pages</span>
-                    <span class="font-medium text-gray-900">180</span>
+                    <span class="font-medium text-gray-900"><?= $book['pages'] ?></span>
                 </div>
+                <?php endif; ?>
+                <?php if (!empty($book['language'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">Language</span>
-                    <span class="font-medium text-gray-900">English</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['language']) ?></span>
                 </div>
+                <?php endif; ?>
+                <?php if (!empty($book['isbn'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">ISBN</span>
-                    <span class="font-medium text-gray-900">978-0-7432-7356-5</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['isbn']) ?></span>
                 </div>
+                <?php endif; ?>
+                <?php if (!empty($book['category'])): ?>
                 <div class="border-t border-gray-200 pt-4 flex justify-between">
                     <span class="text-gray-600">Category</span>
-                    <span class="font-medium text-gray-900">Fiction</span>
+                    <span class="font-medium text-gray-900"><?= esc($book['category']) ?></span>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 
         <!-- Description -->
         <div class="card">
             <h2 class="text-xl font-bold text-gray-900 mb-3">Description</h2>
-            <p class="text-gray-600 leading-relaxed">
-                The Great Gatsby is a classic of American literature that has been acclaimed by generations of readers. 
-                The novel is set in the Jazz Age and deals with important themes including the American Dream, 
-                social class, love, and the American past. It is considered a masterpiece of American literature and 
-                is widely read in high schools and universities.
-            </p>
+            <?php if (!empty($book['description'])): ?>
+                <p class="text-gray-600 leading-relaxed">
+                    <?= nl2br(esc($book['description'])) ?>
+                </p>
+            <?php else: ?>
+                <p class="text-gray-600 leading-relaxed">
+                    This book is available in our library. No detailed description is currently available.
+                </p>
+            <?php endif; ?>
 
-            <h3 class="text-lg font-bold text-gray-900 mt-6 mb-2">Why Read This Book?</h3>
+            <?php if (!empty($book['category']) || !empty($book['language'])): ?>
+            <h3 class="text-lg font-bold text-gray-900 mt-6 mb-2">Book Details</h3>
             <ul class="list-disc list-inside space-y-2 text-gray-600">
-                <li>A timeless love story set against the backdrop of the Jazz Age</li>
-                <li>Explores themes of ambition, wealth, and social class</li>
-                <li>Beautiful prose and memorable characters</li>
-                <li>Essential reading for literature lovers and students</li>
-                <li>Inspired numerous adaptations in film and stage</li>
+                <?php if (!empty($book['category'])): ?>
+                    <li>Category: <?= esc($book['category']) ?></li>
+                <?php endif; ?>
+                <?php if (!empty($book['language'])): ?>
+                    <li>Language: <?= esc($book['language']) ?></li>
+                <?php endif; ?>
+                <?php if (!empty($book['pages'])): ?>
+                    <li><?= $book['pages'] ?> pages</li>
+                <?php endif; ?>
+                <?php if (!empty($book['publication_year'])): ?>
+                    <li>Published in <?= esc($book['publication_year']) ?></li>
+                <?php endif; ?>
             </ul>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -279,9 +328,13 @@ function bookDetail() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '<?= csrf_hash() ?>'
                     },
-                    body: JSON.stringify({ book_id: bookId }),
+                    body: JSON.stringify({ 
+                        book_id: bookId,
+                        <?= csrf_token() ?>: '<?= csrf_hash() ?>'
+                    }),
                     credentials: 'include'
                 });
 
@@ -327,7 +380,7 @@ function bookDetail() {
         },
 
         async shareBook() {
-            const bookTitle = 'The Great Gatsby';
+            const bookTitle = '<?= esc($book['title'] ?? 'Unknown Book') ?>';
             const bookUrl = window.location.href;
             
             // Try to use native Web Share API if available
@@ -349,6 +402,33 @@ function bookDetail() {
                 } catch (error) {
                     alert('Book URL: ' + bookUrl);
                 }
+            }
+        },
+
+        async debugTest() {
+            try {
+                console.log('Testing API debug endpoint...');
+                const response = await fetch('<?= site_url('api/debug/test') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '<?= csrf_hash() ?>'
+                    },
+                    body: JSON.stringify({ test: 'debug request' }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                console.log('Debug Response:', data);
+                alert('Debug Info (check console for details):\n' + 
+                      `Method: ${data.method}\n` +
+                      `Session JWT: ${data.session_data.has_jwt}\n` +
+                      `User: ${data.session_data.has_user}\n` +
+                      `Logged In: ${data.session_data.is_logged_in}`);
+            } catch (error) {
+                console.error('Debug Error:', error);
+                alert('Debug failed: ' + error.message);
             }
         }
     }
