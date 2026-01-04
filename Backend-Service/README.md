@@ -80,54 +80,47 @@ GraphQL Integration
 Setiap service berjalan secara independen di localhost dan saling berkomunikasi melalui GraphQL dan Message Broker untuk menjaga konsistensi data dan kelancaran proses bisnis sistem perpustakaan.
 
 ---
-
 ✅ Services Implemented
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│  1️⃣  MEMBER SERVICE                                        │
-│     ├─ User registration & authentication                  │
-│     ├─ Role management (Admin / Librarian / Member)        │
-│     ├─ Profile management                                  │
-│     └─ JWT-based security                                  │
-│                                                             │
-│  2️⃣  BOOK SERVICE                                          │
-│     ├─ Book CRUD                                            │
-│     ├─ Book search & filter                                 │
-│     ├─ Category management                                  │
-│     ├─ Stock & availability                                 │
-│     └─ Book detail endpoint                                 │
-│                                                             │
-│  3️⃣  TRANSACTION SERVICE                                   │
-│     ├─ Borrow book                                          │
-│     ├─ Return book                                          │
-│     ├─ Borrowing history                                    │
-│     ├─ Due date & overdue logic                              │
-│     └─ Transaction validation                               │
-│                                                             │
-│  4️⃣  GRAPHQL INTEGRATION                                   │
-│     ├─ Unified GraphQL endpoint                              │
-│     ├─ Aggregation across services                           │
-│     ├─ Single entry point for frontend                      │
-│     └─ Schema-based API design                               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+
+1️⃣ Member Service
+User registration & authentication
+Role management (Admin / Librarian / Member)
+Profile management
+JWT-based security
+2️⃣ Book Service
+Book CRUD
+Book search & filter
+Category management
+Stock & availability
+Book detail endpoint
+3️⃣ Transaction Service
+Borrow book
+Return book
+Borrowing history
+Due date & overdue logic
+Transaction validation
+4️⃣ GraphQL Integration
+Unified GraphQL endpoint
+Aggregation across services
+Single entry point for frontend
+Schema-based API design
 
 🏗️ Architecture Overview
 Frontend (CodeIgniter 4)
-        │
-        ▼
- GraphQL Integration Layer
-        │
- ┌──────┼─────────┬─────────┐
- │      │         │         │
- ▼      ▼         ▼         ▼
-Member  Book   Transaction  (Future Services)
-Service Service   Service
-Benefits:
+        |
+        v
+GraphQL Integration Layer
+        |
+  -------------------------
+  |           |           |
+Member      Book     Transaction
+Service    Service     Service
+Benefits
 Loose coupling antar service
 Mudah dikembangkan secara terpisah
-Skalabel & maintainable
-Frontend hanya berkomunikasi ke 1 endpoint (GraphQL)
+Skalabel dan mudah di-maintain
+Frontend hanya berkomunikasi ke satu endpoint (GraphQL)
+
 📁 Project Structure
 Backend-Service/
 ├── GraphQL-Integration/
