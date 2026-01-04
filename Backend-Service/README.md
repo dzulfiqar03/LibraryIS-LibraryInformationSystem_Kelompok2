@@ -1,4 +1,4 @@
-📚 LibraryIS Backend Service – Microservices & GraphQL API
+#📚 LibraryIS Backend Service – Microservices & GraphQL API
 Library Information System Backend built with Microservices Architecture & GraphQL Integration
 
 🎉 Backend Overview
