@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -35,4 +34,25 @@ return [
         ],
     ],
 
+    // Custom Services untuk Microservices Architecture
+    'member_service' => [
+        'url' => env('MEMBER_SERVICE_URL', 'http://localhost:8001'),
+        'token' => env('MEMBER_SERVICE_TOKEN', ''),
+        'timeout' => env('MEMBER_SERVICE_TIMEOUT', 30),
+        'retry_times' => env('MEMBER_SERVICE_RETRY_TIMES', 3),
+        'retry_sleep' => env('MEMBER_SERVICE_RETRY_SLEEP', 100),
+    ],
+
+    'book_service' => [
+        'url' => env('BOOK_SERVICE_URL', 'http://localhost:8002'),
+        'token' => env('BOOK_SERVICE_TOKEN', ''),
+        'timeout' => env('BOOK_SERVICE_TIMEOUT', 30),
+        'retry_times' => env('BOOK_SERVICE_RETRY_TIMES', 3),
+        'retry_sleep' => env('BOOK_SERVICE_RETRY_SLEEP', 100),
+    ],
+
+    'transaction_service' => [
+        'url' => env('TRANSACTION_SERVICE_URL', 'http://localhost:8003'),
+        'timeout' => env('TRANSACTION_SERVICE_TIMEOUT', 30),
+    ],
 ];
