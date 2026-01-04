@@ -87,39 +87,26 @@ User registration & authentication
 Role management (Admin / Librarian / Member)
 Profile management
 JWT-based security
+
 2️⃣ Book Service
 Book CRUD
 Book search & filter
 Category management
 Stock & availability
 Book detail endpoint
+
 3️⃣ Transaction Service
 Borrow book
 Return book
 Borrowing history
 Due date & overdue logic
 Transaction validation
+
 4️⃣ GraphQL Integration
 Unified GraphQL endpoint
 Aggregation across services
 Single entry point for frontend
 Schema-based API design
-
-🏗️ Architecture Overview
-Frontend (CodeIgniter 4)
-        |
-        v
-GraphQL Integration Layer
-        |
-  -------------------------
-  |           |           |
-Member      Book     Transaction
-Service    Service     Service
-Benefits
-Loose coupling antar service
-Mudah dikembangkan secara terpisah
-Skalabel dan mudah di-maintain
-Frontend hanya berkomunikasi ke satu endpoint (GraphQL)
 
 📁 Project Structure
 Backend-Service/
