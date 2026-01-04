@@ -108,34 +108,6 @@ Aggregation across services
 Single entry point for frontend
 Schema-based API design
 
-📁 Project Structure
-Backend-Service/
-├── GraphQL-Integration/
-│   ├── schema.graphql
-│   ├── resolvers/
-│   ├── datasources/
-│   └── server.js / index.php
-│
-├── member-service/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Routes/
-│   └── Auth & Profile logic
-│
-├── book-service/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Routes/
-│   └── Book & Category logic
-│
-├── transaction-service/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Routes/
-│   └── Borrow & Return logic
-│
-└── README.md
-
 
 🔧 Technology Stack
 Backend Framework   : Laravel / Node.js (per service)
