@@ -27,7 +27,7 @@ class TransactionService
         $this->bookService = new BookService();
     }
 
-      public function getAll()
+    public function getAll()
     {
         return Transaction::with('transaction_details')->latest()->get();
     }
@@ -58,7 +58,7 @@ class TransactionService
         }
 
 
-        TransactionJob::dispatch($books, $transaction->id)
+        TransactionJob::dispatch($books, $transaction->id, $data['id_member'])
             ->onQueue('transaction.book');
         BookSnaphotJob::dispatch($books, 'borrowed', 'update')
             ->onQueue('snapshot.book');
@@ -129,7 +129,7 @@ class TransactionService
             BookSnaphotJob::dispatch($books, 'returned', 'update')
                 ->onQueue('snapshot.book');
 
-            TransactionJob::dispatch($books, $transaction->id)
+            TransactionJob::dispatch($books, $transaction->id, $data['id_member'])
                 ->onQueue('transaction.book');
 
             $result[] = $this->getTransactionWithDetails($transaction->id);

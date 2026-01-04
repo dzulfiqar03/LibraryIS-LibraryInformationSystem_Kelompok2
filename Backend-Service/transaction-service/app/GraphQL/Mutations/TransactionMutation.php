@@ -39,8 +39,8 @@ class TransactionMutation
 
     public function delete($_, array $args)
     {
-       $transaction = Transaction::find($args['id']);
-       $transaction->delete();
+        $transaction = Transaction::find($args['id']);
+        $transaction->delete();
 
         return [
             'message' => 'berhasil dihapus',

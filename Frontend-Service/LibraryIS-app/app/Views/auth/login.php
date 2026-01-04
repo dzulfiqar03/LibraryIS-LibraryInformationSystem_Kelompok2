@@ -43,7 +43,7 @@
                         id="email" 
                         name="email" 
                         value="<?= old('email') ?>"
-                        class="input-field <?= session('errors.email') ? 'is-invalid' : '' ?>" 
+                        class="input-field w-full <?= session('errors.email') ? 'is-invalid' : '' ?>" 
                         placeholder="your@email.com"
                         required
                     >
@@ -84,7 +84,7 @@
                 </div>
 
                 <!-- Remember Me & Forgot Password -->
-                <div class="flex items-center justify-between">
+                <div class="flex pb-4 items-center justify-between">
                     <label class="flex items-center gap-2 text-sm">
                         <input type="checkbox" name="remember" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         <span class="text-gray-700">Remember me</span>
@@ -98,7 +98,7 @@
                 <button 
                     type="submit" 
                     :disabled="loading"
-                    class="btn-primary w-full"
+                    class="btn-primary bg-slate-300 py-3 text-black font-bold w-full"
                 >
                     <span x-show="!loading">Sign In</span>
                     <span x-show="loading" class="flex items-center gap-2">

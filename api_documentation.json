@@ -1,116 +1,179 @@
 {
-  "api": "Library Information System API",
+  "api_name": "Library Information System API",
   "version": "1.0.0",
-  "endpoints": {
-    "method": {
-      "GET": "Mengambil data dari server.",
-      "POST": "Mengirim data baru ke server.",
-      "PUT": "Memperbarui data yang sudah ada di server.",
-      "DELETE": "Menghapus data dari server."
+  "architecture": "Microservices with GraphQL Gateway",
+
+  "http_methods": {
+    "GET": "Mengambil data dari server.",
+    "POST": "Mengirim data baru ke server.",
+    "PUT": "Memperbarui data yang sudah ada di server.",
+    "DELETE": "Menghapus data dari server."
+  },
+
+  "authentication": {
+    "type": "Bearer Token",
+    "header": "Authorization: Bearer <token>",
+    "description": "Setiap request ke endpoint wajib menyertakan token autentikasi."
+  },
+
+  "graphql": {
+    "endpoint": "http://localhost:8000/graphql",
+    "description": "GraphQL Gateway untuk mengakses seluruh fitur Transaction Service (transactions, fines, recommendations)."
+  },
+
+  "services": {
+    "book_service": {
+      "service_name": "Book Service",
+      "base_url": "http://localhost:8001/api",
+      "description": "Mengelola data master buku, stok, dan informasi detail buku.",
+
+      "book_endpoints": [
+        {
+          "method": "GET",
+          "path": "/books",
+          "description": "Mengambil seluruh data buku."
+        },
+        {
+          "method": "GET",
+          "path": "/books/{id}",
+          "description": "Mengambil detail buku berdasarkan ID."
+        },
+        {
+          "method": "POST",
+          "path": "/books",
+          "description": "Menambahkan buku baru."
+        },
+        {
+          "method": "PUT",
+          "path": "/books/{id}",
+          "description": "Memperbarui data buku."
+        },
+        {
+          "method": "DELETE",
+          "path": "/books/{id}",
+          "description": "Menghapus data buku."
+        }
+      ],
+
+      "book_stock_endpoints": [
+        {
+          "method": "PUT",
+          "path": "/books/{id}/stock",
+          "description": "Menambah atau mengurangi stok buku."
+        }
+      ]
     },
 
-    "GraphQL-Integration": {
-      "url": "http://localhost:8000/graphql",
-      "description": "Endpoint GraphQL untuk mengakses data dari berbagai layanan."
+    "member_service": {
+      "service_name": "Member Service",
+      "base_url": "http://localhost:8002/api",
+      "description": "Mengelola data anggota perpustakaan dan status keanggotaan.",
+
+      "member_endpoints": [
+        {
+          "method": "GET",
+          "path": "/members",
+          "description": "Mengambil seluruh data anggota."
+        },
+        {
+          "method": "GET",
+          "path": "/members/{id}",
+          "description": "Mengambil detail anggota berdasarkan ID."
+        },
+        {
+          "method": "POST",
+          "path": "/members",
+          "description": "Mendaftarkan anggota baru."
+        },
+        {
+          "method": "PUT",
+          "path": "/members/{id}",
+          "description": "Memperbarui data anggota."
+        },
+        {
+          "method": "DELETE",
+          "path": "/members/{id}",
+          "description": "Menghapus data anggota."
+        }
+      ],
+
+      "member_status_endpoints": [
+        {
+          "method": "PUT",
+          "path": "/members/{id}/status",
+          "description": "Mengubah status anggota (active, suspended, banned)."
+        }
+      ]
     },
 
-    "User-Service": [
-      {
-        "methode": "GET",
-        "url": {
-          "all_users": "http://localhost:8001/api/users",
-          "user_by_id": "http://localhost:8001/api/users/{id}"
-        },
-        "description": "Endpoint RESTful untuk manajemen data pengguna."
-      },
-      {
-        "methode": "POST",
-        "url": {
-          "create_user": "http://localhost:8001/api/users"
-        },
-        "description": "Endpoint untuk membuat data pengguna baru."
-      },
-      {
-        "methode": "PUT",
-        "url": {
-          "update_user": "http://localhost:8001/api/users/{id}"
-        },
-        "description": "Endpoint untuk memperbarui data pengguna yang sudah ada."
-      },
-      {
-        "methode": "DELETE",
-        "url": {
-          "delete_user": "http://localhost:8001/api/users/{id}"
-        },
-        "description": "Endpoint untuk menghapus data pengguna."
-      }
-    ],
+    "transaction_service": {
+      "service_name": "Transaction Service",
+      "base_url": "http://localhost:8003/api",
+      "description": "Mengelola transaksi peminjaman buku, denda keterlambatan, dan rekomendasi buku.",
 
-    "Book-Service": [
-      {
-        "methode": "GET",
-        "url": {
-          "all_books": "http://localhost:8002/api/books",
-          "book_by_id": "http://localhost:8002/api/books/{id}"
+      "transaction_endpoints": [
+        {
+          "method": "GET",
+          "path": "/transactions",
+          "description": "Mengambil seluruh data transaksi."
         },
-        "description": "Endpoint RESTful untuk manajemen data buku."
-      },
-      {
-        "methode": "POST",
-        "url": {
-          "create_book": "http://localhost:8002/api/books"
+        {
+          "method": "GET",
+          "path": "/transactions/{id}",
+          "description": "Mengambil detail transaksi berdasarkan ID."
         },
-        "description": "Endpoint untuk menambahkan data buku baru."
-      },
-      {
-        "methode": "PUT",
-        "url": {
-          "update_book": "http://localhost:8002/api/books/{id}"
+        {
+          "method": "POST",
+          "path": "/transactions",
+          "description": "Membuat transaksi peminjaman baru."
         },
-        "description": "Endpoint untuk memperbarui data buku yang sudah ada."
-      },
-      {
-        "methode": "DELETE",
-        "url": {
-          "delete_book": "http://localhost:8002/api/books/{id}"
+        {
+          "method": "PUT",
+          "path": "/transactions/{id}",
+          "description": "Memperbarui data transaksi."
         },
-        "description": "Endpoint untuk menghapus data buku."
-      }
-    ],
-    "Transaction-Service": [
-      {
-        "methode": "GET",
-        "url": {
-          "all_transactions": "http://localhost:8003/api/transactions",
-          "transaction_by_id": "http://localhost:8003/api/transactions/{id}"
+        {
+          "method": "DELETE",
+          "path": "/transactions/{id}",
+          "description": "Menghapus data transaksi."
+        }
+      ],
+
+      "fines_endpoints": [
+        {
+          "method": "GET",
+          "path": "/transactions/{id}/fines",
+          "description": "Mengambil data denda berdasarkan transaksi."
         },
-        "description": "Endpoint RESTful untuk manajemen data transaksi peminjaman buku."
-      },
-      {
-        "methode": "POST",
-        "url": {
-          "create_transaction": "http://localhost:8003/api/transactions"
+        {
+          "method": "POST",
+          "path": "/transactions/{id}/fines",
+          "description": "Menambahkan denda pada transaksi."
         },
-        "description": "Endpoint untuk membuat data transaksi peminjaman baru."
-      },
-      {
-        "methode": "PUT",
-        "url": {
-          "update_transaction": "http://localhost:8003/api/transactions/{id}"
+        {
+          "method": "PUT",
+          "path": "/transactions/{id}/fines",
+          "description": "Memperbarui data denda transaksi."
+        }
+      ],
+
+      "recommendation_endpoints": [
+        {
+          "method": "GET",
+          "path": "/transactions/{id}/recommendations",
+          "description": "Mengambil rekomendasi buku berdasarkan transaksi."
         },
-        "description": "Endpoint untuk memperbarui data transaksi yang sudah ada."
-      },
-      {
-        "methode": "DELETE",
-        "url": {
-          "delete_transaction": "http://localhost:8003/api/transactions/{id}"
+        {
+          "method": "GET",
+          "path": "/transactions/user/{user_id}/recommendations",
+          "description": "Mengambil rekomendasi buku berdasarkan histori transaksi pengguna."
         },
-        "description": "Endpoint untuk menghapus data transaksi."
-      }
-    ],
-    "authentication": {
-      "method": "Bearer Token",
-      "description": "Setiap permintaan ke endpoint harus menyertakan token otentikasi di header Authorization."
+        {
+          "method": "POST",
+          "path": "/transactions/recommendations",
+          "description": "Membuat atau memperbarui data rekomendasi buku."
+        }
+      ]
     }
   }
 }

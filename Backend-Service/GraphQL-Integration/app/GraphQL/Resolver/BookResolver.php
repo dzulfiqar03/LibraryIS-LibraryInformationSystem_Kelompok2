@@ -23,12 +23,22 @@ class BookResolver
 
         $books = array_map(function ($book) {
             return [
-                'id' => $book['id'],
+                'id'    => $book['id'],
                 'title' => $book['title'],
                 'book_detail' => [
-                    'authors' => $book['book_detail'][0]['authors'] ?? [],
-                    
-                ] ?? []
+                    'authors'          => $book['book_detail']['authors'] ?? null,
+                    'isbn'             => $book['book_detail']['isbn'] ?? null,
+                    'publisher'        => $book['book_detail']['publisher'] ?? null,
+                    'publication_year' => $book['book_detail']['publication_year'] ?? null,
+                    'category'         => $book['book_detail']['category'] ?? 'uncategorized',
+                    'description' => $book['book_detail']['description'] ?? null,
+                    'pages' => $book['book_detail']['pages'] ?? null,
+                    'quantity' => $book['book_detail']['quantity'] ?? null,
+                    'languages' => $book['book_detail']['languages'] ?? null,
+                    'url_cover' => $book['book_detail']['url_cover'] ?? null,
+                    'url_ebook' => $book['book_detail']['url_ebook'] ?? null,
+                    'status'           => $book['book_detail']['status'] ?? 'available',
+                ]
             ];
         }, $data);
 
@@ -53,7 +63,18 @@ class BookResolver
         }
 
         $book_detail = [
-            'authors' => $data['book_detail'][0]['authors'] ?? [],
+            'authors'          => $data['book_detail']['authors'] ?? null,
+            'isbn'             => $data['book_detail']['isbn'] ?? null,
+            'publisher'        => $data['book_detail']['publisher'] ?? null,
+            'publication_year' => $data['book_detail']['publication_year'] ?? null,
+            'category'         => $data['book_detail']['category'] ?? 'uncategorized',
+            'description' => $data['book_detail']['description'] ?? null,
+            'pages' => $data['book_detail']['pages'] ?? null,
+            'quantity' => $data['book_detail']['quantity'] ?? null,
+            'languages' => $data['book_detail']['languages'] ?? null,
+            'url_cover' => $data['book_detail']['url_cover'] ?? null,
+            'url_ebook' => $data['book_detail']['url_ebook'] ?? null,
+            'status'           => $data['book_detail']['status'] ?? 'available',
         ] ?? [];
 
         return [

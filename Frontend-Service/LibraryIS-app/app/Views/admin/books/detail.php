@@ -68,8 +68,9 @@
             </div>
 
             <div class="space-y-2">
-                <a href="<?= site_url('admin/books/' . $book['id'] . '/edit') ?>" class="btn btn-primary w-full">Edit Book</a>
-                <a href="<?= site_url('admin/books/' . $book['id'] . '/delete') ?>" class="btn btn-danger w-full">Delete Book</a>
+                <a href="<?= site_url('admin/books/' . $book['id'] . '/edit') ?>" class="px-3 py-1 rounded-lg text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                    Edit Book</a>
+                <a href="<?= site_url('admin/books/' . $book['id'] . '/delete') ?>" class="px-3 py-1 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200">Delete Book</a>
             </div>
         </div>
     </div>

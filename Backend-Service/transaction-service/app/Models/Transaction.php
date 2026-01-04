@@ -43,4 +43,10 @@ class Transaction extends Model
     {
         return $this->hasMany(TransactionDetail::class, 'id_transaction');
     }
+
+        public function fine_payment()
+    {
+        return $this->hasOne(FinePayment::class, 'id_transaction');
+    }
+
 }

@@ -3,10 +3,10 @@
 <?= $this->section('title') ?>Register<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
+<div class=" flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-4 px-4 sm:px-6 lg:px-8">
     <div class="w-full max-w-md">
         <!-- Header -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-4">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
@@ -43,7 +43,7 @@
                         id="name" 
                         name="name" 
                         value="<?= old('name') ?>"
-                        class="input-field <?= session('errors.name') ? 'is-invalid' : '' ?>" 
+                        class="input-field w-full <?= session('errors.name') ? 'is-invalid' : '' ?>" 
                         placeholder="John Doe"
                         required
                     >
@@ -60,7 +60,7 @@
                         id="email" 
                         name="email" 
                         value="<?= old('email') ?>"
-                        class="input-field <?= session('errors.email') ? 'is-invalid' : '' ?>" 
+                        class="input-field w-full <?= session('errors.email') ? 'is-invalid' : '' ?>" 
                         placeholder="your@email.com"
                         required
                     >
@@ -77,7 +77,7 @@
                         id="phone" 
                         name="phone" 
                         value="<?= old('phone') ?>"
-                        class="input-field <?= session('errors.phone') ? 'is-invalid' : '' ?>" 
+                        class="input-field w-full <?= session('errors.phone') ? 'is-invalid' : '' ?>" 
                         placeholder="08123456789"
                     >
                     <?php if (session('errors.phone')): ?>
@@ -91,7 +91,7 @@
                     <textarea 
                         id="address" 
                         name="address" 
-                        class="input-field resize-none <?= session('errors.address') ? 'is-invalid' : '' ?>" 
+                        class="input-field w-full resize-none <?= session('errors.address') ? 'is-invalid' : '' ?>" 
                         placeholder="Your home address"
                         rows="2"
                     ><?= old('address') ?></textarea>
@@ -183,7 +183,7 @@
                 <button 
                     type="submit" 
                     :disabled="loading"
-                    class="btn-primary w-full"
+                    class="btn-primary  w-full"
                 >
                     <span x-show="!loading">Create Account</span>
                     <span x-show="loading" class="flex items-center gap-2">
@@ -209,7 +209,7 @@
             <!-- Login Link -->
             <p class="text-center text-gray-600">
                 Already have an account?
-                <a href="<?= site_url('auth/login') ?>" class="font-medium text-primary-600 hover:text-primary-700">
+                <a href="<?= site_url('auth/login') ?>" class="font-medium  text-primary-600 hover:text-primary-700">
                     Sign in
                 </a>
             </p>

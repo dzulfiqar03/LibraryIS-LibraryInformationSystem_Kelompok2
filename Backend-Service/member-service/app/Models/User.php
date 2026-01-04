@@ -76,6 +76,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UserDetail::class, 'id_user', 'id');
     }
 
+       public function member_detail()
+    {
+        return $this->hasOne(MemberDetail::class, 'id_user', 'id');
+    }
+
     /**
      * Get the user's role via user_detail relationship
      */

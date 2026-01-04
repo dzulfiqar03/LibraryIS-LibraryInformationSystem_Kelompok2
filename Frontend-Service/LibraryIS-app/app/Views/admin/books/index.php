@@ -19,42 +19,151 @@
 </div>
 
 <!-- Books Table -->
-<div class="bg-white rounded-xl shadow-md overflow-hidden">
-    <table class="w-full">
-        <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Author</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">ISBN</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Quantity</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-            <?php if (!empty($books)): ?>
-                <?php foreach ($books as $book): ?>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 text-sm text-gray-900 font-medium"><?= esc($book['title'] ?? 'N/A') ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-600"><?= esc($book['author'] ?? 'N/A') ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-600"><?= esc($book['isbn'] ?? 'N/A') ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-600"><?= esc($book['category'] ?? 'N/A') ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-900 font-medium"><?= esc($book['quantity'] ?? 0) ?></td>
-                        <td class="px-6 py-4 text-sm space-x-2">
-                            <a href="<?= site_url('admin/books/' . $book['id']) ?>" class="text-primary-600 hover:text-primary-700 font-medium">View</a>
-                            <a href="<?= site_url('admin/books/' . $book['id'] . '/edit') ?>" class="text-blue-600 hover:text-blue-700 font-medium">Edit</a>
-                            <a href="<?= site_url('admin/books/' . $book['id'] . '/delete') ?>" class="text-danger-600 hover:text-danger-700 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                        No books found. <a href="<?= site_url('admin/books/create') ?>" class="text-primary-600 hover:underline">Add a book</a>
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-gray-800">📚 Books</h2>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table id="booksTable"
+               class="w-full text-sm border-separate border-spacing-y-3">
+            <thead>
+                <tr class="text-xs uppercase text-gray-400">
+                    <th class="px-5 py-3 text-left">Book</th>
+                    <th class="px-5 py-3 text-left">Author</th>
+                    <th class="px-5 py-3 text-left">ISBN</th>
+                    <th class="px-5 py-3 text-left">Category</th>
+                    <th class="px-5 py-3 text-left">Stock</th>
+                    <th class="px-5 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            <?php foreach ($books as $book): ?>
+                <tr class="group bg-white shadow-sm hover:shadow-lg transition-all duration-200 rounded-xl">
+                    <!-- Book -->
+                    <td class="px-5 py-4 rounded-l-xl">
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-gray-800">
+                                <?= esc($book['title']) ?>
+                            </span>
+                            <span class="text-xs text-gray-400">
+                                ID #<?= esc($book['id']) ?>
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Author -->
+                    <td class="px-5 py-4 text-gray-600">
+                        <?= esc($book['author']) ?>
+                    </td>
+
+                    <!-- ISBN -->
+                    <td class="px-5 py-4 text-gray-500">
+                        <?= esc($book['isbn']) ?>
+                    </td>
+
+                    <!-- Category -->
+                    <td class="px-5 py-4">
+                        <span class="inline-flex items-center rounded-full
+                                     bg-indigo-50 text-indigo-600
+                                     px-3 py-1 text-xs font-medium">
+                            <?= esc($book['category']) ?>
+                        </span>
+                    </td>
+
+                    <!-- Stock -->
+                    <td class="px-5 py-4">
+                        <?php if ($book['quantity'] <= 0): ?>
+                            <span class="text-red-600 font-semibold">Out</span>
+                        <?php elseif ($book['quantity'] < 5): ?>
+                            <span class="text-amber-600 font-semibold">Low (<?= $book['quantity'] ?>)</span>
+                        <?php else: ?>
+                            <span class="text-emerald-600 font-semibold"><?= $book['quantity'] ?></span>
+                        <?php endif; ?>
+                    </td>
+
+                    <!-- Action -->
+                    <td class="px-5 py-4 rounded-r-xl">
+                        <div class="flex justify-end gap-2  transition">
+                            <a href="<?= site_url('admin/books/'.$book['id']) ?>"
+                               class="px-3 py-1 rounded-lg text-xs bg-gray-100 hover:bg-gray-200">
+                               View
+                            </a>
+                            <a href="<?= site_url('admin/books/'.$book['id'].'/edit') ?>"
+                               class="px-3 py-1 rounded-lg text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                               Edit
+                            </a>
+                            <a href="<?= site_url('admin/books/'.$book['id'].'/delete') ?>"
+                               class="px-3 py-1 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                               onclick="return confirm('Delete this book?')">
+                               Delete
+                            </a>
+                        </div>
                     </td>
                 </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
+<style>
+.dataTables_filter input {
+    border: 1px solid #e5e7eb;
+    border-radius: .75rem;
+    padding: .45rem .75rem;
+}
+.dt-btn {
+    background: #4f46e5 !important;
+    color: white !important;
+    border-radius: .75rem !important;
+    padding: .4rem .9rem !important;
+    font-size: .75rem;
+}
+.dt-btn:hover {
+    background: #4338ca !important;
+}
+</style>
+
+
+<script>
+$(document).ready(function () {
+    $('#booksTable').DataTable({
+        dom: '<"flex justify-between items-center mb-4"Bf>rt<"flex justify-between items-center mt-4"ip>',
+        pageLength: 10,
+        ordering: true,
+        responsive: true,
+        columnDefs: [
+            { orderable: false, targets: 5 } // Actions
+        ],
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Excel',
+                className: 'dt-btn'
+            },
+            {
+                extend: 'csvHtml5',
+                text: 'CSV',
+                className: 'dt-btn'
+            },
+            {
+                extend: 'print',
+                text: 'Print',
+                className: 'dt-btn'
+            }
+        ],
+        language: {
+            search: '',
+            searchPlaceholder: 'Search books...',
+            info: 'Showing _START_ to _END_ of _TOTAL_ books',
+            paginate: {
+                next: 'Next',
+                previous: 'Prev'
+            }
+        }
+    });
+});
+</script>
+
 <?= $this->endSection() ?>

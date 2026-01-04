@@ -3,24 +3,28 @@
 ## Start Services (4 Terminal Windows)
 
 ### Terminal 1: GraphQL Integration Service (Port 8000)
+
 ```bash
 cd Backend-Service/GraphQL-Integration
 php artisan serve --port=8000
 ```
 
 ### Terminal 2: Member Service (Port 8001)
+
 ```bash
 cd Backend-Service/member-service
 php artisan serve --port=8001
 ```
 
 ### Terminal 3: Book Service (Optional)
+
 ```bash
 cd Backend-Service/book-service
 php artisan serve --port=8002
 ```
 
 ### Terminal 4: Frontend
+
 ```bash
 cd Frontend-Service/LibraryIS-app
 php spark serve
@@ -52,6 +56,7 @@ API_TIMEOUT = 10
 ## API Flow
 
 ### 1. User Registration/Login
+
 - User submits credentials to `AuthController::loginProcess()`
 - Controller calls `AuthService::login()`
 - AuthService calls `ApiClient::memberGraphql()` → Member Service (Port 8001)
@@ -59,6 +64,7 @@ API_TIMEOUT = 10
 - Token stored in session via `ApiClient::setToken()`
 
 ### 2. Authenticated Requests
+
 - Any service method checks session for JWT token
 - Includes `Authorization: Bearer {token}` header
 - Routes authenticated requests to `ApiClient::graphql()` → GraphQL Integration (Port 8000)
@@ -66,22 +72,24 @@ API_TIMEOUT = 10
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `app/Services/ApiClient.php` | HTTP client for GraphQL requests |
-| `app/Services/AuthService.php` | Authentication logic |
-| `app/Services/BookService.php` | Book catalog operations |
-| `app/Services/BorrowingService.php` | Book borrowing operations |
-| `app/Services/GraphQLQueries.php` | GraphQL queries/mutations |
-| `app/Controllers/Auth/AuthController.php` | Auth controller with API integration |
-| `.env` | Backend service URLs |
+| File                                       | Purpose                              |
+| ------------------------------------------ | ------------------------------------ |
+| `app/Services/ApiClient.php`               | HTTP client for GraphQL requests     |
+| `app/Services/AuthService.php`             | Authentication logic                 |
+| `app/Services/BookService.php`             | Book catalog operations              |
+| `app/Services/TransactionService.php`      | Transaction operations               |
+| `app/Jobs/TransactionJob.php`              | Book borrowing operations            |
+| `app/Jobs/Consume/ConsumeTransaction.php`  | Book borrowing update                |
+| `app/Jobs/Consume/ConsumeMemberDetail.php` | Member borrowing update              |
+| `app/Controllers/Auth/AuthController.php`  | Auth controller with API integration |
+| `.env`                                     | Backend service URLs                 |
 
 ## Usage in Controllers
 
 ```php
 use App\Services\AuthService;
 use App\Services\BookService;
-use App\Services\BorrowingService;
+use App\Services\TransactionServices;
 
 class MyController extends BaseController
 {
@@ -90,14 +98,14 @@ class MyController extends BaseController
         // Authentication
         $auth = new AuthService();
         $user = $auth->getCurrentUser();
-        
+
         // Books
         $books = new BookService();
         $bookList = $books->getAllBooks();
-        
+
         // Borrowing
-        $borrowing = new BorrowingService();
-        $myBooks = $borrowing->getActiveBorrowings();
+        $borrowing = new TransactionServices();
+        $myBooks = $transactions->getTransaction();
     }
 }
 ```
@@ -125,13 +133,13 @@ class MyController extends BaseController
 
 ## Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Connection refused | Check services are running: `netstat -an \| grep 800` |
-| Unauthorized (401) | Token expired or not stored. Try logging in again |
-| Token not in session | Check `AuthController::loginProcess()` is called |
+| Issue                | Solution                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| Connection refused   | Check services are running: `netstat -an \| grep 800`                    |
+| Unauthorized (401)   | Token expired or not stored. Try logging in again                        |
+| Token not in session | Check `AuthController::loginProcess()` is called                         |
 | GraphQL schema error | Check backend GraphQL schema: `Backend-Service/*/graphql/schema.graphql` |
-| CORS error | Backend needs CORS enabled for frontend URL |
+| CORS error           | Backend needs CORS enabled for frontend URL                              |
 
 ## Queue Processing (Optional)
 
@@ -140,10 +148,27 @@ class MyController extends BaseController
 cd Backend-Service/transaction-service
 php artisan queue:work --queue=transaction.book
 
+# Terminal: Booksnapshot queue
+cd Backend-Service/transaction-service
+php artisan queue:work --queue=book.snapshot
+
+# Terminal: Booksnapshot updates
+cd Backend-Service/transaction-service
+php artisan queue:work --queue=book.snapshot.update
+
 # Terminal: Book updates
 cd Backend-Service/book-service
 php artisan queue:work --queue=book.update
+
+# Terminal: Member updates
+cd Backend-Service/member-service
+php artisan queue:work --queue=memberDetail.update
+
+
 ```
+
+
+
 
 ## Database Seeding
 
@@ -173,6 +198,7 @@ All responses follow GraphQL format with `data` and `errors` fields:
 ```
 
 If query fails:
+
 ```json
 {
   "errors": [
@@ -208,17 +234,20 @@ $user = session()->get('user');
 ## Debugging Tips
 
 1. **Check Laravel logs:**
+
    ```bash
    cd Frontend-Service/LibraryIS-app
    tail -f storage/logs/laravel.log
    ```
 
 2. **Enable debug mode in `.env`:**
+
    ```env
    CI_ENVIRONMENT = development
    ```
 
 3. **Test GraphQL directly:**
+
    ```bash
    # Using curl
    curl -X POST http://127.0.0.1:8000/api/graphql \

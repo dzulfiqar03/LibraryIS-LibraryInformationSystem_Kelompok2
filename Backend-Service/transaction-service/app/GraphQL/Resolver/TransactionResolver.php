@@ -9,7 +9,9 @@ class TransactionResolver
 
     public function all()
     {
-        $transaction = Transaction::with('transaction_details')->get();
+        $transaction = Transaction::with(['transaction_details', 'fine_payment'])
+            ->whereHas('fine_payment')
+            ->get();
         return [
             'transactionList' => $transaction
         ];

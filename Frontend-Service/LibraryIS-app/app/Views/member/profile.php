@@ -49,7 +49,7 @@
                     id="name" 
                     name="name" 
                     value="<?= old('name') ?? ($user['name'] ?? '') ?>"
-                    class="input-field <?= session('errors.name') ? 'is-invalid' : '' ?>" 
+                    class="input-field w-full <?= session('errors.name') ? 'is-invalid' : '' ?>" 
                     required
                 >
                 <?php if (session('errors.name')): ?>
@@ -65,7 +65,7 @@
                     id="email" 
                     name="email" 
                     value="<?= old('email') ?? ($user['email'] ?? '') ?>"
-                    class="input-field <?= session('errors.email') ? 'is-invalid' : '' ?>" 
+                    class="input-field w-full <?= session('errors.email') ? 'is-invalid' : '' ?>" 
                     required
                 >
                 <?php if (session('errors.email')): ?>
@@ -82,7 +82,7 @@
                     id="phone" 
                     name="phone" 
                     value="<?= old('phone') ?? ($user['phone'] ?? '') ?>"
-                    class="input-field <?= session('errors.phone') ? 'is-invalid' : '' ?>" 
+                    class="input-field w-full <?= session('errors.phone') ? 'is-invalid' : '' ?>" 
                 >
                 <?php if (session('errors.phone')): ?>
                     <p class="error-text"><?= session('errors.phone') ?></p>
@@ -96,7 +96,7 @@
                     id="address" 
                     name="address" 
                     rows="3"
-                    class="input-field <?= session('errors.address') ? 'is-invalid' : '' ?>" 
+                    class="input-field w-full <?= session('errors.address') ? 'is-invalid' : '' ?>" 
                 ><?= old('address') ?? ($user['address'] ?? '') ?></textarea>
                 <?php if (session('errors.address')): ?>
                     <p class="error-text"><?= session('errors.address') ?></p>
@@ -110,7 +110,7 @@
                     type="text" 
                     id="member_id" 
                     value="<?= $user['id'] ?? 'N/A' ?>"
-                    class="input-field bg-gray-100" 
+                    class="input-field w-full bg-gray-100" 
                     disabled
                 >
             </div>

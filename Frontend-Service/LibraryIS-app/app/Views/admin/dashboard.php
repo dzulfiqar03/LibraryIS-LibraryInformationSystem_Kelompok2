@@ -18,7 +18,7 @@
                 <p class="text-2xl font-bold text-gray-900 mt-2">📚</p>
             </div>
             <div class="text-right">
-                <a href="<?= site_url('admin/books') ?>" class="btn btn-primary text-sm">
+                <a href="<?= site_url('admin/books') ?>" class="btn bg-slate-300 px-3 py-4 rounded-xl btn-primary text-sm">
                     Manage Books
                 </a>
             </div>
@@ -33,7 +33,7 @@
                 <p class="text-2xl font-bold text-gray-900 mt-2">➕</p>
             </div>
             <div class="text-right">
-                <a href="<?= site_url('admin/books/create') ?>" class="btn btn-success text-sm">
+                <a href="<?= site_url('admin/books/create') ?>" class="btn bg-slate-300 px-3 py-4 rounded-xl btn-success text-sm">
                     Add Book
                 </a>
             </div>

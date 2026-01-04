@@ -77,10 +77,9 @@ class FineService
         }
 
         return FinePayment::create([
-            'id' => Str::uuid(),
             'id_transaction' => $transactionId,
             'id_member' => $transaction->id_member,
-            'amount' => $fineAmount,
+            'fine_amount' => $fineAmount,
             'days_overdue' => $daysOverdue,
             'status' => 'unpaid',
             'payment_method' => null,
@@ -106,7 +105,7 @@ class FineService
     {
         return FinePayment::where('status', 'unpaid')
             ->with(['transaction' => function($query) {
-                $query->select('id', 'id_member', 'id_book', 'borrow_date', 'due_date');
+                $query->select('id', 'id_member', 'transaction_date', 'due_date');
             }])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -116,6 +115,6 @@ class FineService
     {
         return FinePayment::where('id_member', $memberId)
             ->where('status', 'unpaid')
-            ->sum('amount');
+            ->sum('fine_amount');
     }
 }

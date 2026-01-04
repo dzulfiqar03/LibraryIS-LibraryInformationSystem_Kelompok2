@@ -27,10 +27,13 @@ class ConsumeTransaction implements ShouldQueue
     public function handle()
     {
         foreach ($this->books as $b) {
+            $detail = BookDetail::where('id_book', $b['id_book'])->first();
             BookDetail::where('id_book', $b['id_book'])->update([
-                'status' => $b['status']
+                'status' => $b['status'],
+                'quantity' => $detail->quantity - $b['quantity']
             ]);
         }
+
 
         Log::info("Books updated for transaction {$this->transactionId}");
     }

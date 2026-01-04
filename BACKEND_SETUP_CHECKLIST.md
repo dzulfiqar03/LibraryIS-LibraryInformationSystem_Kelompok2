@@ -266,6 +266,7 @@ php artisan queue:work --queue=transaction.book
 cd Backend-Service/book-service
 php artisan queue:work --queue=book.update
 
+
 # Terminal 3: Book snapshot queue
 cd Backend-Service/book-service
 php artisan queue:work --queue=snapshot.book
@@ -273,6 +274,10 @@ php artisan queue:work --queue=snapshot.book
 # Terminal 4: Snapshot update queue
 cd Backend-Service/transaction-service
 php artisan queue:work --queue=snapshot.book.update
+
+# Terminal 5: Member update queue
+cd Backend-Service/member-service
+php artisan queue:work --queue=memberDetail.update
 ```
 
 - [ ] RabbitMQ running on localhost:5672

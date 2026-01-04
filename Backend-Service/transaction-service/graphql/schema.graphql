@@ -1,8 +1,15 @@
 type Query {
-    transactions: Transaction! @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@all")
+    transactions: Transaction!
+        @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@all")
 
     transaction(id: ID!): Transactions
         @field(resolver: "App\\GraphQL\\Resolver\\TransactionResolver@find")
+
+    fines: Fine! @field(resolver: "App\\GraphQL\\Resolver\\FineResolver@all")
+
+
+    fineMember(id: ID!): [FinesMember]
+        @field(resolver: "App\\GraphQL\\Resolver\\FineResolver@findMemberFine")
 }
 
 type Transaction {
@@ -14,6 +21,7 @@ type Transactions {
     id_member: String!
     status: String!
     transaction_details: [TransactionDetail]
+    fine_payment: Fines
 }
 
 type TransactionDetail {
@@ -23,21 +31,54 @@ type TransactionDetail {
     quantity: Int
     price: Float
 }
+
+type Fine {
+    fineList: [Fines!]!
+}
+
+type Fines {
+    id: ID!
+    id_member: String!
+    fine_amount: Float
+    paid_amount: Float
+    status: String!
+    description: String
+    payment_methode: String
+}
+
+type FinesMember {
+    transaction: TransactionFine
+    days_overdue: Int
+    fine_amount: Int
+    existing_fine: ExistingFineDetail
+    can_pay: Boolean
+}
+
+type TransactionFine {
+    id: ID
+    status: String
+}
+
+type ExistingFineDetail {
+    amount: Int
+    status: String
+}
+
 input TransactionDetailInput {
-  id_book: Int
-  quantity: Int
-  price: Float
+    id_book: Int
+    quantity: Int
+    price: Float
 }
 
 input CreateTransactionInput {
-  id_member: String!
-  transaction_date: String
-  books: [TransactionDetailInput]
+    id_member: String!
+    transaction_date: String
+    books: [TransactionDetailInput]
 }
 
 type Response {
-  message: String
-  data: [Transactions]
+    message: String
+    data: [Transactions]
 }
 
 type Mutation {

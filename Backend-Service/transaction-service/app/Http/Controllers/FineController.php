@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FineRequest;
 use App\Services\FineService;
 use App\Models\FinePayment;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+
+use function PHPUnit\Framework\isEmpty;
 
 class FineController extends Controller
 {
@@ -16,14 +20,40 @@ class FineController extends Controller
         $this->fineService = $fineService;
     }
 
+    public function getAllFine()
+    {
+        $transaction = Transaction::with(['transaction_details', 'fine_payment'])
+            ->whereHas('fine_payment')
+            ->get();
+        return [
+            'fineList' => $transaction
+        ];
+    }
+
     public function getMemberFines(Request $request, $memberId): JsonResponse
     {
         try {
             $fines = $this->fineService->getMemberFines($memberId);
             $totalFine = $this->fineService->getMemberTotalFine($memberId);
 
+            if (isEmpty($fines) && $totalFine == 0) {
+                return response()->json([
+                    'success' => True,
+                    'message' => "Member Not Have Fine",
+                ]);
+            } elseif (isEmpty($fines) && $totalFine > 0) {
+                return response()->json([
+                    'success' => True,
+                    'message' => "Member Success Found",
+                    'data' => [
+                        'fines' => "Member ini belum memiliki denda overdue",
+                        'total_unpaid_fine' => $totalFine
+                    ]
+                ]);
+            }
             return response()->json([
-                'success' => true,
+                'success' => True,
+                'message' => "Member Success Found",
                 'data' => [
                     'fines' => $fines,
                     'total_unpaid_fine' => $totalFine
@@ -37,14 +67,10 @@ class FineController extends Controller
         }
     }
 
-    public function createFine(Request $request): JsonResponse
+    public function createFine(FineRequest $request): JsonResponse
     {
         try {
-            $request->validate([
-                'id_transaction' => 'required|string|exists:transactions,id'
-            ]);
-
-            $finePayment = $this->fineService->createFinePayment($request->id_transaction);
+            $finePayment = $this->fineService->createFinePayment($request->validated()['id_transaction']);
 
             return response()->json([
                 'success' => true,
@@ -85,9 +111,13 @@ class FineController extends Controller
     {
         try {
             $fines = $this->fineService->getAllUnpaidFines();
-
+            if (isEmpty($fines)) {
+                return response()->json([
+                    'success' => "Data Member belum bayar belum ada",
+                ]);
+            }
             return response()->json([
-                'success' => true,
+                'success' => "Data Member belum bayar ditemukan",
                 'data' => $fines
             ]);
         } catch (\Exception $e) {

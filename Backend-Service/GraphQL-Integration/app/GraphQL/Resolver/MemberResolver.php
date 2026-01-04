@@ -44,37 +44,39 @@ class MemberResolver
     }
 
 
-    public function find($_, array $args)
-    {
-        $token = request()->bearerToken();
+public function find($_, array $args)
+{
+    $token = request()->bearerToken();
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json',
-        ])->get($this->url . 'User/' . $args['id']);
+    $response = Http::withHeaders([
+        'Authorization' => 'Bearer ' . $token,
+        'Accept' => 'application/json',
+    ])->get($this->url . 'User/' . $args['id']);
 
-        $data = $response->json('data');
+    $data = $response->json('data');
 
-        if (!$data) {
-            return null;
-        }
-
-        $user_detail = [
-            'id' => $data['user_detail']['id'] ?? null,
-            'username' => $data['user_detail']['username'] ?? null,
-            'name' => $data['user_detail']['name'] ?? null,
-            'id_role' => $data['user_detail']['id_role'] ?? null,
-            'telephone_number' => $data['user_detail']['telephone_number'] ?? null,
-            'roles' => [
-                'id' => $data['user_detail']['roles']['id']??null,
-                'role' => $data['user_detail']['roles']['role']??null,
-            ]
-        ] ?? [];
-
-        return [
-            'id' => $data['id'],
-            'email' => $data['email'],
-            'user_detail' => $user_detail
-        ];
+    // Jika data user tidak ditemukan
+    if (!$data) {
+        return null;
     }
+
+    // Ambil data detail agar kode lebih bersih
+    $detail = $data['user_detail'] ?? null;
+
+    return [
+        'id'    => $data['id'],
+        'email' => $data['email'],
+        'user_detail' => $detail ? [
+            'id'               => $detail['id'] ?? null,
+            'username'         => $detail['username'] ?? null,
+            'name'             => $detail['name'] ?? null,
+            'id_role'          => $detail['id_role'] ?? null,
+            'telephone_number' => $detail['telephone_number'] ?? null,
+            'roles'            => isset($detail['roles']) ? [
+                'id'   => $detail['roles']['id'] ?? null,
+                'role' => $detail['roles']['role'] ?? null,
+            ] : null
+        ] : null
+    ];
+}
 }

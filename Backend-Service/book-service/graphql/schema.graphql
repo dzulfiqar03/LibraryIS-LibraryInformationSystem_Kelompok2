@@ -17,6 +17,13 @@ type Books {
 
 type BookDetail {
     authors: String
+    isbn: String
+    publisher: String
+    publication_year: Int
+    category: String
+    description: String
+    pages: Int
+    quantity: Int
     languages: String
     url_cover: String
     url_ebook: String
@@ -24,22 +31,28 @@ type BookDetail {
 }
 
 input BookDetailInput {
-  authors: String
-  languages: String
-  url_cover: String
-  url_ebook: String
-  status: String
+    authors: String
+    isbn: String
+    publisher: String
+    publication_year: Int
+    category: String
+    description: String
+    pages: Int
+    quantity: Int
+    languages: String
+    url_cover: String
+    url_ebook: String
+    status: String
 }
 
 input CreateBookInput {
-  title: String!
-  detail: BookDetailInput
+    title: String!
+    detail: BookDetailInput
 }
 
-
 type Response {
-  message: String
-  data: [Books]
+    message: String
+    data: Books
 }
 
 type Mutation {

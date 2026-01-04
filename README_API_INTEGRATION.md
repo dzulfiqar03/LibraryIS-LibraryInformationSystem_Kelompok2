@@ -24,7 +24,15 @@ php artisan serve --port=8000
 cd Backend-Service/member-service
 php artisan serve --port=8001
 
-# Terminal 3 - Frontend
+# Terminal 3: Book Service (Book)
+cd Backend-Service/book-service
+php artisan serve --port=8002
+
+# Terminal 4: Transaction Service (transaction)
+cd Backend-Service/transaction-service
+php artisan serve --port=8003
+
+# Terminal 5 - Frontend
 cd Frontend-Service/LibraryIS-app
 php spark serve
 ```
@@ -75,6 +83,7 @@ Start here based on your needs:
 - GraphQL Integration Service (Port 8000)
 - Member Service for Auth (Port 8001)
 - Centralized GraphQL queries
+- Microservice Architecture
 - Proper error handling
 - Session management
 - RabbitMQ support (optional)
@@ -151,6 +160,8 @@ Response returned to frontend
 ```env
 GRAPHQL_SERVICE_URL = http://127.0.0.1:8000/api/graphql
 MEMBER_SERVICE_URL = http://127.0.0.1:8001/api/graphql
+BOOK_SERVICE_URL = http://127.0.0.1:8002/api/graphql
+TRANSACTION_SERVICE_URL = http://127.0.0.1:8001/api/graphql
 API_TIMEOUT = 10
 ```
 
@@ -211,6 +222,16 @@ curl -X POST http://127.0.0.1:8001/api/graphql \
   -H "Content-Type: application/json" \
   -d '{"query":"..."}'
 
+# Test Book Service
+curl -X POST http://127.0.0.1:8002/api/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"..."}'
+
+# Test Transaction Service
+curl -X POST http://127.0.0.1:8003/api/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"..."}'
+
 # Test GraphQL Integration
 curl -X POST http://127.0.0.1:8000/api/graphql \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -241,6 +262,8 @@ See [BACKEND_SETUP_CHECKLIST.md](BACKEND_SETUP_CHECKLIST.md#troubleshooting-comm
 |---------|------|------------------|---------|
 | GraphQL Integration | 8000 | `http://127.0.0.1:8000/api/graphql` | Main API |
 | Member Service | 8001 | `http://127.0.0.1:8001/api/graphql` | Authentication |
+| Book Service | 8002 | `http://127.0.0.1:8002/api/graphql` | Authentication |
+| Transaction Service | 8003 | `http://127.0.0.1:8003/api/graphql` | Authentication |
 | Frontend | 8080 | `http://localhost:8080` | Web App |
 | MySQL | 3306 | `localhost:3306` | Database |
 | RabbitMQ | 5672 | `127.0.0.1:5672` | Message Queue (optional) |
@@ -367,7 +390,16 @@ LibraryIS-LibraryInformationSystem_Kelompok2/
 ```
 ┌─────────────────────────────────────────┐
 │  Frontend (localhost:8080)              │
-│  CodeIgniter 4 + PHP                    │
+│  CodeIgniter 4 + PHP                    │             │ GraphQL
+      ┌──────┴──────┐
+      │             │
+      ▼             ▼
+┌──────────┐  ┌──────────────┐
+│ Member   │  │ GraphQL      │
+│ Service  │  │ Integration  │
+│ (8001)   │  │ (8000)       │
+└────┬─────┘  └──────┬───────┘
+     │               │
 └────────────┬────────────────────────────┘
              │ GraphQL
       ┌──────┴──────┐

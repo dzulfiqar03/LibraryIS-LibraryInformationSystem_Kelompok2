@@ -16,22 +16,22 @@ class BookMutation
 
     public function create($_, array $args)
     {
-        app(BookServices::class)
+        $result= app(BookServices::class)
             ->createBook($args['input']);
 
         return [
             'message' => 'berhasil disimpan',
-            'data' => app(BookServices::class)->getAll()
+            'data' => $result
         ];
     }
 
     public function update($_, array $args)
     {
-        app(BookServices::class)
+        $result=app(BookServices::class)
             ->updateBook($args['id'], $args['input']);
         return [
             'message' => 'berhasil diupdate',
-            'data' => app(BookServices::class)->getAll()
+            'data' => $result
         ];
     }
 

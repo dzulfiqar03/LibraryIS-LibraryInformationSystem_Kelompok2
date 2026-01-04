@@ -21,7 +21,7 @@
 
     <div class="flex">
         <!-- Sidebar -->
-        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 transition-transform duration-300 lg:translate-x-0">
+        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed lg:static inset-y-0 left-0 w-64 min-h-screen bg-white border-r border-gray-200 z-30 transition-transform duration-300 lg:translate-x-0">
             <!-- Logo -->
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center gap-3">
@@ -38,37 +38,59 @@
             </div>
 
             <!-- Navigation -->
-            <nav class="p-4 space-y-2">
-                <a href="<?= site_url('admin/dashboard') ?>" class="nav-link <?= current_url(true)->getPath() === '/admin/dashboard' ? 'active' : '' ?>">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m0 0l4 4m-4-4v4"></path>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
+    <nav class="p-4 space-y-1">
+    <!-- Dashboard -->
+    <a href="<?= site_url('admin/dashboard') ?>"
+       class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition
+       <?= current_url(true)->getPath() === '/admin/dashboard'
+            ? 'bg-indigo-50 text-indigo-600'
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' ?>">
+        <svg class="h-5 w-5 shrink-0 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9"/>
+        </svg>
+        <span>Dashboard</span>
+    </a>
 
-                <a href="<?= site_url('admin/books') ?>" class="nav-link <?= strpos(current_url(true)->getPath(), '/admin/books') === 0 ? 'active' : '' ?>">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
-                    </svg>
-                    <span>Book Management</span>
-                </a>
+    <!-- Books -->
+    <a href="<?= site_url('admin/books') ?>"
+       class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition
+       <?= strpos(current_url(true)->getPath(), '/admin/books') === 0
+            ? 'bg-indigo-50 text-indigo-600'
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' ?>">
+        <svg class="h-5 w-5 shrink-0 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"/>
+        </svg>
+        <span>Book Management</span>
+    </a>
 
-                <hr class="my-4 border-gray-200">
+    <!-- Divider -->
+    <div class="my-4 h-px bg-gray-200"></div>
 
-                <a href="<?= site_url('member/dashboard') ?>" class="nav-link">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    <span>Member Portal</span>
-                </a>
+    <!-- Member -->
+    <a href="<?= site_url('member/dashboard') ?>"
+       class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition
+              hover:bg-gray-100 hover:text-gray-900">
+        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span>Member Portal</span>
+    </a>
 
-                <a href="<?= site_url('auth/logout') ?>" class="nav-link text-danger-600 hover:bg-danger-50 hover:text-danger-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    <span>Logout</span>
-                </a>
-            </nav>
+    <!-- Logout -->
+    <a href="<?= site_url('auth/logout') ?>"
+       class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition
+              hover:bg-red-50 hover:text-red-700">
+        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        <span>Logout</span>
+    </a>
+</nav>
+
         </div>
 
         <!-- Main Content -->

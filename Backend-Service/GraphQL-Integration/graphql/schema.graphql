@@ -44,13 +44,20 @@ type Book {
 }
 
 type Books {
-    id: ID!
-    title: String!
-    book_detail: BookDetail!
+    id: ID
+    title: String
+    book_detail: BookDetail
 }
 
 type BookDetail {
     authors: String
+    isbn: String
+    publisher: String
+    publication_year: Int
+    category: String
+    description: String
+    pages: Int
+    quantity: Int
     languages: String
     url_cover: String
     url_ebook: String
@@ -79,39 +86,56 @@ type TransactionDetail {
 }
 
 input TransactionDetailInput {
-  id_book: Int
-  quantity: Int
-  price: Float
+    id_book: Int
+    quantity: Int
+    price: Float
 }
 
 input CreateTransactionInput {
-  id_member: String!
-  transaction_date: String
-  books: [TransactionDetailInput]
+    id_member: String!
+    transaction_date: String
+    books: [TransactionDetailInput]
 }
 
 type Response {
-  message: String
-  data: [Transactions]
+    message: String
+    data: Transactions
 }
 
 input BookDetailInput {
-  authors: String
-  languages: String
-  url_cover: String
-  url_ebook: String
-  status: String
+    authors: String
+    isbn: String
+    publisher: String
+    publication_year: Int
+    category: String
+    description: String
+    pages: Int
+    quantity: Int
+    languages: String
+    url_cover: String
+    url_ebook: String
+    status: String
 }
 
 input CreateBookInput {
-  title: String!
-  detail: BookDetailInput
+    title: String!
+    authors: String
+    isbn: String
+    publisher: String
+    publication_year: Int
+    category: String
+    description: String
+    pages: Int
+    quantity: Int
+    languages: String
+    url_cover: String
+    url_ebook: String
+    status: String
 }
 
-
 type BookResponse {
-  message: String
-  data: [Books]
+    message: String
+    data: Books
 }
 
 type Mutation {
@@ -126,11 +150,10 @@ type Mutation {
 
     createBook(input: CreateBookInput!): BookResponse
         @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@create")
-    
+
     updateBook(id: ID!, input: CreateBookInput!): BookResponse
         @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@update")
 
     deleteBook(id: ID!): BookResponse
         @field(resolver: "App\\GraphQL\\Mutations\\BookMutation@delete")
-
 }

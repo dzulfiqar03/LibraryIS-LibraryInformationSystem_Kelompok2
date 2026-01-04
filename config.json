@@ -40,10 +40,10 @@
   },
   "notes": "Pastikan semua dependensi telah diinstal sebelum menjalankan layanan.",
   "license": "MIT",
-  "last_updated": "2025-12-23 16:00:55",
+  "last_updated": "2026-01-04 12:40:25",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/libraryis.git",
+    "url": "https://github.com/dzulfiqar03/libraryis.git",
     "last_commit": "2025-12-23 16:01:22",
     "last_commit_by": "Muhammad Dzulfiqar"
   },
@@ -53,15 +53,15 @@
       "email": "muhammaddzulfiqar03@gmail.com"
     },
     {
-      "name": "Project Maintainer",
+      "name": "Shaquille Rayhannizam",
       "email": "maintainer@example.com"
     },
     {
-      "name": "Support",
+      "name": "Firman Bayu Alvianto",
       "email": "support@example.com"
     },
     {
-      "name": "Documentation",
+      "name": "Aditya Meilano Fatahillah",
       "email": "documentation@example.com"
     }
   ],

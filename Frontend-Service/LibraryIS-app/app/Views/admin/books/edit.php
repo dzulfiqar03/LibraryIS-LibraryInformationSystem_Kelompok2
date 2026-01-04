@@ -99,7 +99,7 @@
 
         <!-- Buttons -->
         <div class="flex gap-3 pt-4">
-            <button type="submit" class="btn btn-primary">Update Book</button>
+            <button type="submit" class="px-3 py-1 rounded-lg text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200">Update Book</button>
             <a href="<?= site_url('admin/books') ?>" class="btn btn-outline">Cancel</a>
         </div>
     </form>

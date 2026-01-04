@@ -4,38 +4,34 @@
 
 <?= $this->section('page_content') ?>
 <div x-data="bookSearch()" x-init="loadBooks()">
-    <!-- Page Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-display font-bold text-gray-900">Search Books</h1>
-        <p class="text-gray-600 mt-1">Find your next great read from our collection</p>
+    <div class="mb-10">
+        <h1 class="text-4xl font-display font-extrabold text-gray-900 tracking-tight">Cari Koleksi Buku</h1>
+        <p class="text-gray-500 mt-2 text-lg">Temukan literatur terbaik dari ribuan koleksi perpustakaan kami.</p>
     </div>
 
-    <!-- Search Bar -->
-    <div class="mb-8">
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <form @submit.prevent="searchBooks()" class="space-y-4">
-                <!-- Main Search Input -->
-                <div class="relative">
+    <div class="mb-10">
+        <div class="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 p-8">
+            <form @submit.prevent="searchBooks()" class="space-y-6">
+                <div class="relative group">
                     <input 
                         type="text" 
                         x-model="searchQuery" 
-                        placeholder="Search by title, author, or keyword..." 
-                        class="input-field w-full pl-12 pr-4 py-3 rounded-lg"
+                        @keyup.enter="searchBooks()"
+                        placeholder="Masukkan judul buku, nama penulis, atau kata kunci..." 
+                        class="w-full pl-14 pr-4 py-4 bg-gray-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 rounded-2xl text-lg transition-all duration-300"
                     >
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                        <svg class="w-6 h-6 text-gray-400 group-focus-within:text-primary-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                 </div>
 
-                <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Category -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
-                        <select x-model="selectedCategory" @change="searchBooks()" class="input-field w-full">
-                            <option value="">All Categories</option>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Kategori</label>
+                        <select x-model="selectedCategory" @change="searchBooks()" class="w-full px-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm font-semibold transition-all">
+                            <option value="">Semua Kategori</option>
                             <option value="fiction">Fiction</option>
                             <option value="non-fiction">Non-Fiction</option>
                             <option value="mystery">Mystery</option>
@@ -45,153 +41,118 @@
                         </select>
                     </div>
                     
-                    <!-- Availability Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Availability</label>
-                        <select x-model="availabilityFilter" @change="searchBooks()" class="input-field w-full">
-                            <option value="">All Books</option>
-                            <option value="available">Available Only</option>
-                            <option value="borrowed">Currently Borrowed</option>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Ketersediaan</label>
+                        <select x-model="availabilityFilter" @change="searchBooks()" class="w-full px-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm font-semibold transition-all">
+                            <option value="">Semua Status</option>
+                            <option value="available">Hanya Tersedia</option>
+                            <option value="borrowed">Sedang Dipinjam</option>
                         </select>
                     </div>
                     
-                    <!-- Sort By -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Sort By</label>
-                        <select x-model="sortBy" @change="searchBooks()" class="input-field w-full">
-                            <option value="title">Title</option>
-                            <option value="author">Author</option>
-                            <option value="year">Publication Year</option>
-                            <option value="popularity">Popularity</option>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Urutkan</label>
+                        <select x-model="sortBy" @change="searchBooks()" class="w-full px-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm font-semibold transition-all">
+                            <option value="title">Judul (A-Z)</option>
+                            <option value="author">Penulis</option>
+                            <option value="year">Tahun Terbit</option>
+                            <option value="popularity">Paling Populer</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Search Button -->
-                <div class="pt-2">
-                    <button type="submit" class="btn btn-primary" :disabled="loading">
-                        <span x-show="!loading">Search Books</span>
-                        <span x-show="loading" class="flex items-center gap-2">
-                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Searching...
-                        </span>
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" class="px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-200 transition-all flex items-center gap-2" :disabled="loading">
+                        <template x-if="!loading">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                Terapkan Pencarian
+                            </span>
+                        </template>
+                        <template x-if="loading">
+                            <span class="flex items-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Mencari...
+                            </span>
+                        </template>
                     </button>
-                    <button type="button" @click="clearFilters()" class="btn btn-outline ml-2">
-                        Clear Filters
+                    <button type="button" @click="clearFilters()" class="px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all">
+                        Reset Filter
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Results Section -->
-    <div class="space-y-6">
-        <!-- Loading State -->
-        <div x-show="loading" class="text-center py-12">
-            <svg class="animate-spin mx-auto w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-gray-600 mt-2">Loading books...</p>
+    <div class="relative">
+        <div x-show="!loading && books.length > 0" class="flex items-center justify-between mb-8 px-2">
+            <h3 class="text-gray-500 font-medium">Ditemukan <span class="text-gray-900 font-bold" x-text="totalResults"></span> koleksi buku</h3>
         </div>
 
-        <!-- Error State -->
-        <div x-show="error && !loading" class="text-center py-12">
-            <div class="text-red-600 mb-4">
-                <svg class="mx-auto w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v2"></path>
-                </svg>
-            </div>
-            <p class="text-gray-600" x-text="error"></p>
-            <button @click="loadBooks()" class="btn btn-primary mt-4">Try Again</button>
-        </div>
-
-        <!-- Books Grid -->
-        <div x-show="!loading && !error && books.length > 0">
-            <!-- Results Info -->
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">
-                    Showing <span x-text="books.length"></span> books
-                    <span x-show="searchQuery" x-text="'for \"' + searchQuery + '\"'"></span>
-                </p>
-            </div>
-
-            <!-- Book Cards Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <template x-for="book in books" :key="book.id">
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" @click="viewBook(book.id)">
-                        <!-- Book Cover -->
-                        <div class="aspect-[3/4] bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center relative">
-                            <template x-if="book.url_cover">
-                                <img :src="book.url_cover" :alt="book.title" class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!book.url_cover">
-                                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
-                                </svg>
-                            </template>
-                            
-                            <!-- Availability Badge -->
-                            <div class="absolute top-2 right-2">
-                                <span x-show="book.quantity > 0" class="badge badge-success">Available</span>
-                                <span x-show="book.quantity <= 0" class="badge badge-danger">Not Available</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <template x-for="book in books" :key="book.id">
+                <div 
+                    @click="viewBook(book.id)"
+                    class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden cursor-pointer"
+                >
+                    <div class="relative aspect-[3/4] overflow-hidden bg-gray-100">
+                        <template x-if="book.url_cover">
+                            <img :src="book.url_cover" :alt="book.title" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        </template>
+                        <template x-if="!book.url_cover">
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200">
+                                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path></svg>
+                                <span class="text-[10px] uppercase font-bold text-gray-400 mt-2 tracking-widest">No Cover</span>
                             </div>
-                        </div>
+                        </template>
                         
-                        <!-- Book Info -->
-                        <div class="p-4">
-                            <h3 class="font-display font-bold text-gray-900 text-sm mb-1" x-text="book.title"></h3>
-                            <p class="text-gray-600 text-xs mb-2" x-text="book.author"></p>
-                            
-                            <div class="flex justify-between items-center mt-3">
-                                <div class="flex items-center space-x-2">
-                                    <template x-if="book.quantity > 0">
-                                        <button @click.stop="borrowBook(book.id)" class="btn btn-primary text-xs">
-                                            Borrow
-                                        </button>
-                                    </template>
-                                    <template x-if="book.quantity <= 0">
-                                        <button @click.stop="reserveBook(book.id)" class="btn btn-outline text-xs">
-                                            Reserve
-                                        </button>
-                                    </template>
-                                </div>
-                                <span class="text-xs text-gray-500" x-text="book.category"></span>
-                            </div>
+                        <div class="absolute top-4 right-4">
+                            <span 
+                                :class="book.quantity > 0 ? 'bg-emerald-500' : 'bg-rose-500'" 
+                                class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-black/10"
+                                x-text="book.quantity > 0 ? 'Tersedia' : 'Kosong'"
+                            ></span>
                         </div>
                     </div>
-                </template>
-            </div>
-            
-            <!-- Pagination -->
-            <div x-show="totalPages > 1" class="flex justify-center mt-8 gap-2">
-                <button @click="previousPage()" :disabled="currentPage <= 1" class="btn btn-outline" :class="{ 'opacity-50 cursor-not-allowed': currentPage <= 1 }">
-                    Previous
-                </button>
-                
-                <template x-for="page in pageNumbers" :key="page">
-                    <button @click="goToPage(page)" :class="page === currentPage ? 'btn btn-primary' : 'btn btn-outline'" x-text="page"></button>
-                </template>
-                
-                <button @click="nextPage()" :disabled="currentPage >= totalPages" class="btn btn-outline" :class="{ 'opacity-50 cursor-not-allowed': currentPage >= totalPages }">
-                    Next
-                </button>
-            </div>
+
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <p class="text-[10px] font-black uppercase tracking-tighter text-primary-600 mb-1" x-text="book.category"></p>
+                            <h4 class="text-gray-900 font-display font-bold text-lg leading-tight line-clamp-2 h-14 group-hover:text-primary-600 transition-colors" x-text="book.title"></h4>
+                            <p class="text-gray-500 text-sm mt-2 font-medium" x-text="book.author"></p>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2 border-t border-gray-50">
+                            <button 
+                                @click.stop="book.quantity > 0 ? borrowBook(book.id) : reserveBook(book.id)" 
+                                :class="book.quantity > 0 ? 'bg-primary-600 hover:bg-primary-700 text-white' : 'bg-gray-900 hover:bg-gray-800 text-white'"
+                                class="flex-1 py-3 rounded-xl font-bold text-xs transition-all active:scale-95"
+                                x-text="book.quantity > 0 ? 'Pinjam Sekarang' : 'Reservasi'"
+                            ></button>
+                        </div>
+                    </div>
+                </div>
+            </template>
         </div>
 
-        <!-- No Results -->
-        <div x-show="!loading && !error && books.length === 0" class="text-center py-12">
-            <div class="text-gray-400 mb-4">
-                <svg class="mx-auto w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path>
-                </svg>
+        <div x-show="!loading && books.length === 0" class="flex flex-col items-center justify-center py-20 px-4">
+            <div class="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"></path></svg>
             </div>
-            <p class="text-gray-600 text-lg mb-2">No books found</p>
-            <p class="text-gray-500">Try adjusting your search criteria</p>
-            <button @click="clearFilters()" class="btn btn-primary mt-4">Clear All Filters</button>
+            <h3 class="text-xl font-bold text-gray-900 mb-1">Buku tidak ditemukan</h3>
+            <p class="text-gray-500 text-center max-w-xs">Kami tidak dapat menemukan hasil untuk kata kunci tersebut. Coba cari dengan istilah lain.</p>
+            <button @click="clearFilters()" class="mt-6 text-primary-600 font-bold hover:underline">Lihat Semua Koleksi</button>
+        </div>
+
+        <div x-show="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <template x-for="i in 8" :key="i">
+                <div class="animate-pulse bg-white rounded-3xl p-4 border border-gray-100">
+                    <div class="bg-gray-200 aspect-[3/4] rounded-2xl mb-4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div class="h-6 bg-gray-200 rounded w-full mb-2"></div>
+                    <div class="h-6 bg-gray-200 rounded w-2/3"></div>
+                </div>
+            </template>
         </div>
     </div>
 </div>
@@ -199,84 +160,44 @@
 <script>
 function bookSearch() {
     return {
-        // Data
         books: [],
+        totalResults: 0,
         loading: false,
         error: null,
-        
-        // Search parameters
         searchQuery: '',
         selectedCategory: '',
         availabilityFilter: '',
         sortBy: 'title',
-        
-        // Pagination
         currentPage: 1,
         totalPages: 1,
-        perPage: 12,
-        
-        // Computed properties
-        get pageNumbers() {
-            let pages = [];
-            let start = Math.max(1, this.currentPage - 2);
-            let end = Math.min(this.totalPages, this.currentPage + 2);
-            
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-            return pages;
-        },
 
-        // Methods
         async loadBooks() {
             this.loading = true;
-            this.error = null;
-
             try {
                 const token = <?= json_encode(session()->get('jwt_token') ?? '') ?>;
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                };
-                
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                let url = '<?= site_url('api/books') ?>';
-                let params = new URLSearchParams({
+                const params = new URLSearchParams({
                     page: this.currentPage,
-                    per_page: this.perPage
+                    search: this.searchQuery,
+                    category: this.selectedCategory,
+                    availability: this.availabilityFilter,
+                    sort: this.sortBy
                 });
 
-                if (this.searchQuery) params.append('search', this.searchQuery);
-                if (this.selectedCategory) params.append('category', this.selectedCategory);
-                if (this.availabilityFilter) params.append('availability', this.availabilityFilter);
-                if (this.sortBy) params.append('sort', this.sortBy);
-
-                const response = await fetch(`${url}?${params}`, {
-                    method: 'GET',
-                    headers: headers,
-                    credentials: 'include'
+                const response = await fetch(`<?= site_url('api/books') ?>?${params}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const res = await response.json();
+                if (res.success) {
+                    this.books = res.data || res.books;
+                    this.totalResults = res.pagination?.total_items || this.books.length;
+                    this.totalPages = res.pagination?.total_pages || 1;
                 }
-
-                const data = await response.json();
-                
-                if (data.success === false) {
-                    throw new Error(data.message || 'Failed to load books');
-                }
-
-                this.books = data.books || data.data || [];
-                this.totalPages = data.pagination?.total_pages || 1;
-                
-            } catch (error) {
-                console.error('Load books error:', error);
-                this.error = error.message;
-                this.books = [];
+            } catch (e) {
+                console.error("Search failed", e);
             } finally {
                 this.loading = false;
             }
@@ -292,101 +213,22 @@ function bookSearch() {
             this.selectedCategory = '';
             this.availabilityFilter = '';
             this.sortBy = 'title';
-            this.currentPage = 1;
             this.loadBooks();
         },
 
-        // Pagination methods
-        goToPage(page) {
-            this.currentPage = page;
-            this.loadBooks();
+        viewBook(id) {
+            // Mengarah ke detail screen (Pastikan route ini ada di CI4)
+            window.location.href = `<?= site_url('member/books/detail') ?>/${id}`;
         },
 
-        nextPage() {
-            if (this.currentPage < this.totalPages) {
-                this.currentPage++;
-                this.loadBooks();
-            }
+        async borrowBook(id) {
+            // Logic API pinjam
+            alert('Proses meminjam buku ID: ' + id);
         },
 
-        previousPage() {
-            if (this.currentPage > 1) {
-                this.currentPage--;
-                this.loadBooks();
-            }
-        },
-
-        // Book actions
-        viewBook(bookId) {
-            window.location.href = `<?= site_url('member/books/detail') ?>/${bookId}`;
-        },
-
-        async borrowBook(bookId) {
-            if (!confirm('Do you want to borrow this book?')) return;
-
-            try {
-                const token = <?= json_encode(session()->get('jwt_token') ?? '') ?>;
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch('<?= site_url('api/borrowings/borrow') ?>', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ book_id: bookId }),
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Book borrowed successfully!');
-                    this.loadBooks(); // Refresh the list
-                } else {
-                    alert(data.message || 'Failed to borrow book');
-                }
-            } catch (error) {
-                console.error('Borrow error:', error);
-                alert('Error borrowing book: ' + error.message);
-            }
-        },
-
-        async reserveBook(bookId) {
-            if (!confirm('Do you want to reserve this book?')) return;
-
-            try {
-                const token = <?= json_encode(session()->get('jwt_token') ?? '') ?>;
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch('<?= site_url('api/borrowings/reserve') ?>', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ book_id: bookId }),
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Book reserved successfully!');
-                    this.loadBooks(); // Refresh the list
-                } else {
-                    alert(data.message || 'Failed to reserve book');
-                }
-            } catch (error) {
-                console.error('Reserve error:', error);
-                alert('Error reserving book: ' + error.message);
-            }
+        async reserveBook(id) {
+            // Logic API reservasi
+            alert('Proses reservasi buku ID: ' + id);
         }
     }
 }
